@@ -3,6 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
 import { getRussianVoices, setPreferredVoice, speakRu } from '../lib/speech';
 import { pickRussianVoice, type VoiceInfo } from '../lib/speechText';
 import { resetProgress, useProgress } from '../lib/storage';
+import { BUILD_NUMBER } from '../lib/update';
 import { Button, Card, colors, Row } from '../components/ui';
 
 const RATES = [0.7, 0.9, 1.0];
@@ -114,7 +115,7 @@ export default function Settings() {
 
       <Card style={styles.card}>
         <Text style={styles.h}>Progress</Text>
-        <Text style={styles.body}>Your progress is saved only on this phone.</Text>
+        <Text style={styles.body}>Your progress is saved only on this phone. App build: {BUILD_NUMBER || 'dev'}.</Text>
         <Button
           label="Reset all progress"
           color={colors.again}

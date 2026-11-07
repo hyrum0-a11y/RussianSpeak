@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { allPhrases, DECKS, phrasesIn, type Deck } from '../data/phrases';
 import { PROMPTS } from '../data/prompts';
 import { hasRussianVoice } from '../lib/speech';
+import { checkForUpdate, installUpdate, type Update } from '../lib/update';
 import { buildQueue } from '../lib/srs';
 import { newLeftToday, useProgress, type Progress } from '../lib/storage';
 import { Button, Card, colors, Row } from '../components/ui';
@@ -11,9 +12,11 @@ import { Button, Card, colors, Row } from '../components/ui';
 export default function Home() {
   const [p] = useProgress();
   const [voiceOk, setVoiceOk] = useState(true);
+  const [update, setUpdate] = useState<Update | null>(null);
 
   useEffect(() => {
     hasRussianVoice().then(setVoiceOk);
+    checkForUpdate().then(setUpdate);
   }, []);
 
   if (!p) return null;
@@ -25,6 +28,14 @@ export default function Home() {
 
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
+      {update && (
+        <Card style={styles.update}>
+          <Text style={styles.updateTitle}>Update available (build {update.build})</Text>
+          <Text style={styles.updateBody}>Tap to download, then open the file to install. Your progress is kept.</Text>
+          <Button label="⬇ Download update" color={colors.good} onPress={() => installUpdate(update)} />
+        </Card>
+      )}
+
       {!voiceOk && (
         <Card style={styles.warn}>
           <Text style={styles.warnTitle}>No Russian voice found</Text>
@@ -132,6 +143,9 @@ const styles = StyleSheet.create({
   h: { fontSize: 18, fontWeight: '700', color: colors.text, flexShrink: 1 },
   body: { color: colors.text, fontSize: 15, lineHeight: 21 },
   meta: { color: colors.muted },
+  update: { backgroundColor: '#E8F6EC', borderColor: '#9FD5B0', gap: 8 },
+  updateTitle: { fontWeight: '700', color: '#1B5E31' },
+  updateBody: { color: '#1B5E31', lineHeight: 20 },
   warn: { backgroundColor: '#FFF4E0', borderColor: '#F0C27A', gap: 6 },
   warnTitle: { fontWeight: '700', color: '#7A4B00' },
   warnBody: { color: '#7A4B00', lineHeight: 20 },
