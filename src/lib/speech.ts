@@ -1,11 +1,8 @@
 import * as Speech from 'expo-speech';
 
-const STRESS = /́/g;
+import { forSpeech } from './speechText';
 
-/** Remove stress marks (and ellipses) so text-to-speech reads the text naturally. */
-export function forSpeech(text: string): string {
-  return text.replace(STRESS, '').replace(/…/g, '.');
-}
+export { forSpeech };
 
 export function speakRu(text: string, rate = 0.9, onDone?: () => void) {
   Speech.stop();
