@@ -1,0 +1,54 @@
+# RussianSpeak
+
+An Android-first Expo app for practicing spoken Russian: memorizing phrases, pronunciation, and answering questions out loud.
+
+## Features
+
+- **Three decks.** About 90 everyday phrases, 20 famous sayings (пословицы) with literal translations, and 19 iconic lines from classic Soviet and Russian films. Every phrase has stress marks.
+- **Phrase review.** By default the card shows the Cyrillic. You read it aloud and work out the meaning yourself. English stays hidden behind a "Peek" tap, except for sayings and movie lines, which show their meaning automatically. You can switch to English-first in Settings. A spaced-repetition scheduler (simplified SM-2) decides when each phrase comes back.
+- **Pronunciation.** Native text-to-speech (normal and slow speeds). You can record yourself, play your recording back, or play the native voice followed by your recording.
+- **Respond to prompts.** The app asks a question out loud. You answer out loud, record it, and compare with sample answers and a grammar hint.
+- **Phrase library.** Browse by category and tap a phrase to hear it.
+- **Local progress.** Everything is saved on the phone (AsyncStorage). There is no account.
+
+## Run it on your Android phone
+
+1. Install **Expo Go** from the Play Store.
+2. On a computer with Node 20 or newer:
+   ```bash
+   npm install
+   npx expo start
+   ```
+3. Scan the QR code with Expo Go.
+
+**Russian voice:** If the speech sounds wrong or silent, install the Russian voice. Open Settings → System → Languages → Text-to-speech output, tap the gear next to Speech Services by Google, choose Install voice data, then Russian.
+
+## Build the app from your phone (no computer needed)
+
+An APK is the Android app-install file, like an .exe on Windows.
+
+1. On GitHub (the app or the website), open this repo and go to **Actions → Build Android APK → Run workflow**. It also runs automatically after every merge to `main`.
+2. Wait about 10–15 minutes for it to turn green.
+3. Open **Releases** and pick the newest "RussianSpeak build". Download the `.apk` file and open it.
+4. Android will ask you to allow installs from your browser or the GitHub app. Allow it, then tap Install.
+
+To update later, install the newer APK over the old one. Your progress is kept.
+
+## Build an APK with EAS (alternative)
+
+```bash
+npx eas-cli@latest build --platform android --profile preview
+```
+
+This needs a free Expo account. It gives you an APK you can install directly.
+
+## Development
+
+```bash
+npm run typecheck   # TypeScript
+npm test            # SRS scheduler unit tests
+```
+
+- Screens live in `src/app/` (Expo Router).
+- Phrase and prompt content is in `src/data/`. Mark stress with a combining acute accent (U+0301) after the vowel. The stress marks are stripped before the text is spoken.
+- The scheduler is in `src/lib/srs.ts` and storage is in `src/lib/storage.ts`.
