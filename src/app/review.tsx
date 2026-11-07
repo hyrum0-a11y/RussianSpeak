@@ -5,6 +5,7 @@ import { Stack } from 'expo-router/stack';
 import { DECKS, phrasesIn, PHRASES, type Deck, type Phrase } from '../data/phrases';
 import { buildQueue, newCard, previewInterval, schedule, type Grade } from '../lib/srs';
 import { countNewIntroduced, loadProgress, newLeftToday, touchStreak, updateProgress, useProgress } from '../lib/storage';
+import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
 import { Button, Card, colors, Row } from '../components/ui';
 
@@ -69,8 +70,8 @@ export default function Review() {
   }
 
   const ru = <Text style={styles.ru}>{current.ru}</Text>;
-  const en = <Text style={styles.en}>{current.en}</Text>;
-  const note = current.note ? <Text style={styles.note}>💡 {current.note}</Text> : null;
+  // For idioms the note is a literal translation, so it belongs with the English.
+  const tip = !current.idiom && current.note ? <Text style={styles.note}>💡 {current.note}</Text> : null;
 
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
@@ -80,16 +81,20 @@ export default function Review() {
       </Text>
 
       <Card style={styles.card}>
-        {ruFirst ? ru : en}
+        {ruFirst ? ru : <Text style={styles.en}>{current.en}</Text>}
         {revealed ? (
           <>
             <View style={styles.divider} />
-            {ruFirst ? en : ru}
-            {note}
+            {ruFirst ? (
+              <Peek en={current.en} extra={current.idiom ? current.note : undefined} open={current.idiom} />
+            ) : (
+              ru
+            )}
+            {tip}
           </>
         ) : (
           <Text style={styles.hint}>
-            {ruFirst ? 'Read it out loud. What does it mean?' : 'Say it in Russian, out loud.'}
+            {ruFirst ? 'Read it out loud. Work out what it means.' : 'Say it in Russian, out loud.'}
           </Text>
         )}
       </Card>
@@ -105,7 +110,7 @@ export default function Review() {
           </Row>
         </>
       ) : (
-        <Button label={ruFirst ? 'Check meaning & hear it' : 'Show Russian'} onPress={() => setRevealed(true)} />
+        <Button label={ruFirst ? 'Hear it' : 'Show Russian'} onPress={() => setRevealed(true)} />
       )}
     </ScrollView>
   );

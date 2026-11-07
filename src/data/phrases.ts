@@ -8,6 +8,8 @@ export type Phrase = {
   cat: Category;
   deck: Deck;
   note?: string;
+  /** Idioms show their English automatically: the literal words won't get you there. */
+  idiom: boolean;
 };
 
 export type Deck = 'everyday' | 'sayings' | 'movies';
@@ -195,6 +197,7 @@ export const PHRASES: Phrase[] = raw.map(([ru, en, cat, note]) => ({
   cat,
   deck: cat === 'Sayings' ? 'sayings' : cat === 'Movie lines' ? 'movies' : 'everyday',
   note,
+  idiom: cat === 'Sayings' || cat === 'Movie lines',
 }));
 
 export function phrasesIn(deck: Deck): Phrase[] {

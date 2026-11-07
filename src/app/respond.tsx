@@ -5,6 +5,7 @@ import { PROMPTS, type Prompt } from '../data/prompts';
 import { speakRu } from '../lib/speech';
 import { buildQueue, newCard, schedule, type Grade } from '../lib/srs';
 import { loadProgress, touchStreak, updateProgress, useProgress } from '../lib/storage';
+import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
 import { Button, Card, colors, Row } from '../components/ui';
 
@@ -64,7 +65,7 @@ export default function Respond() {
         {showText ? (
           <>
             <Text style={styles.ru}>{current.ru}</Text>
-            <Text style={styles.en}>{current.en}</Text>
+            <Peek en={current.en} />
           </>
         ) : (
           <Pressable onPress={() => setShowText(true)}>
@@ -87,7 +88,7 @@ export default function Respond() {
           {current.answers.map((a) => (
             <Card key={a.ru} style={styles.answer}>
               <Text style={styles.answerRu}>{a.ru}</Text>
-              <Text style={styles.en}>{a.en}</Text>
+              <Peek en={a.en} />
               <Button label="🔊 Listen" variant="outline" onPress={() => speakRu(a.ru, rate)} style={{ flex: 0 }} />
             </Card>
           ))}

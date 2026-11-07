@@ -31,7 +31,7 @@ export default function Phrases() {
           >
             <View style={{ flex: 1 }}>
               <Text style={styles.ru}>{item.ru}</Text>
-              <Text style={styles.en}>{item.en}</Text>
+              {open === item.id || item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
               {open === item.id && item.note ? <Text style={styles.note}>💡 {item.note}</Text> : null}
             </View>
             <Text style={styles.icon}>{learned ? '✓' : '🔊'}</Text>
