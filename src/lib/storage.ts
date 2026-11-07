@@ -9,6 +9,7 @@ const KEY = 'russianspeak:v1';
 export type Settings = {
   newPerDay: number;
   speechRate: number; // 1.0 = normal
+  voiceId?: string; // chosen Russian TTS voice; undefined = pick automatically
   front: 'ru' | 'en'; // what the phrase card shows first
   showPromptText: boolean; // show the Cyrillic question text in prompt drills
 };

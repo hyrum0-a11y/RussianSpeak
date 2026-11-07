@@ -1,8 +1,17 @@
 import { Stack } from 'expo-router/stack';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { colors } from '../components/ui';
+import { setPreferredVoice } from '../lib/speech';
+import { useProgress } from '../lib/storage';
 
 export default function RootLayout() {
+  const [p] = useProgress();
+  const voiceId = p?.settings.voiceId;
+  useEffect(() => {
+    setPreferredVoice(voiceId);
+  }, [voiceId]);
+
   return (
     <>
       <StatusBar style="dark" />
