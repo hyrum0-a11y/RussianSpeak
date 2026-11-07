@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { allPhrases, DECKS, phrasesIn, type Deck } from '../data/phrases';
+import { allPhrases, DECKS, phrasesIn } from '../data/phrases';
 import { PROMPTS } from '../data/prompts';
 import { hasRussianVoice } from '../lib/speech';
-import { checkForUpdate, installUpdate, type Update } from '../lib/update';
 import { buildQueue } from '../lib/srs';
+import { statusOf } from '../lib/status';
 import { newLeftToday, useProgress, type Progress } from '../lib/storage';
-import { Button, Card, colors, Row } from '../components/ui';
+import { checkForUpdate, installUpdate, type Update } from '../lib/update';
+import { ProgressBar } from '../components/ProgressBar';
+import { Button, colors } from '../components/ui';
 
 export default function Home() {
   const [p] = useProgress();
   const [voiceOk, setVoiceOk] = useState(true);
   const [update, setUpdate] = useState<Update | null>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     hasRussianVoice().then(setVoiceOk);
@@ -22,131 +26,180 @@ export default function Home() {
   if (!p) return null;
 
   const now = Date.now();
-  const learned = Object.values(p.cards).filter((c) => c.reps > 0).length;
-  const total = allPhrases(p.custom).length;
+  const all = allPhrases(p.custom);
+  const learned = all.filter((x) => statusOf(p.cards[x.id], now) === 'learned').length;
+  const deckStats = DECKS.map((d) => deckStat(d.id, p, now));
+  const dueToday = deckStats.reduce((n, s) => n + s.queue, 0);
   const promptsDue = buildQueue(PROMPTS.map((x) => x.id), p.prompts, now, 5).length;
 
   return (
-    <ScrollView contentContainerStyle={styles.wrap}>
+    <ScrollView contentContainerStyle={[styles.wrap, { paddingTop: insets.top + 12 }]}>
       {update && (
-        <Card style={styles.update}>
-          <Text style={styles.updateTitle}>Update available (build {update.build})</Text>
-          <Text style={styles.updateBody}>Tap to download, then open the file to install. Your progress is kept.</Text>
-          <Button label="⬇ Download update" color={colors.good} onPress={() => installUpdate(update)} />
-        </Card>
+        <Banner tone="good" title={`Update available · build ${update.build}`} body="Download it, then open the file to install. Your progress is kept.">
+          <Button label="⬇ Download update" color={colors.good} onPress={() => installUpdate(update)} style={{ flex: 0 }} />
+        </Banner>
       )}
-
       {!voiceOk && (
-        <Card style={styles.warn}>
-          <Text style={styles.warnTitle}>No Russian voice found</Text>
-          <Text style={styles.warnBody}>
-            Open Settings → Russian voice in this app for the steps to install one.
-          </Text>
-        </Card>
+        <Banner tone="warn" title="No Russian voice found" body="Open Settings → Russian voice for the steps to install one." />
       )}
 
-      <Text style={styles.summary}>
-        {learned} of {total} phrases learned
-      </Text>
+      {/* Hero */}
+      <View style={styles.hero}>
+        <Text style={styles.heroKicker}>RUSSIANSPEAK</Text>
+        <Text style={styles.heroTitle}>Говори́ по-ру́сски</Text>
+        <View style={styles.heroProgress}>
+          <ProgressBar value={all.length ? learned / all.length : 0} color="#F2C14E" height={8} />
+          <Text style={styles.heroMeta}>
+            {learned} of {all.length} phrases learned
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => router.push({ pathname: '/review', params: { deck: 'all' } })}
+          disabled={!dueToday}
+          style={({ pressed }) => [styles.heroBtn, (pressed || !dueToday) && { opacity: 0.8 }]}
+        >
+          <Text style={styles.heroBtnText}>{dueToday ? `Start today's review · ${dueToday}` : 'All caught up for today ✓'}</Text>
+        </Pressable>
+      </View>
 
-      <Text style={styles.sectionTitle}>Review decks</Text>
-      {DECKS.map((d) => (
-        <DeckCard key={d.id} deck={d.id} title={d.title} p={p} now={now} />
-      ))}
+      {/* Decks */}
+      <Text style={styles.sectionTitle}>Decks</Text>
+      <View style={styles.grid}>
+        {DECKS.map((d, i) => {
+          const s = deckStats[i];
+          return (
+            <Pressable
+              key={d.id}
+              onPress={() => router.push({ pathname: '/deck', params: { deck: d.id } })}
+              style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
+            >
+              <View style={styles.tileTop}>
+                <Text style={styles.tileIcon}>{d.icon}</Text>
+                {s.due > 0 ? (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{s.due}</Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text style={styles.tileTitle} numberOfLines={2}>
+                {d.title}
+              </Text>
+              <Text style={styles.tileMeta}>
+                {s.total ? `${s.learned}/${s.total} learned` : 'Add your own'}
+              </Text>
+              <ProgressBar value={s.total ? s.learned / s.total : 0} height={4} />
+            </Pressable>
+          );
+        })}
+      </View>
 
+      {/* Practice */}
       <Text style={styles.sectionTitle}>Practice</Text>
-      <Mode
-        title="🗣 Respond to prompts"
-        body="Hear a question and answer out loud."
-        meta={`${promptsDue} ready`}
-        disabled={!promptsDue}
-        onPress={() => router.push('/respond')}
-      />
-      <Mode
-        title="🎧 Dictation"
-        body="Hear a phrase with no text and type what you heard."
-        onPress={() => router.push('/dictation')}
-      />
-      <Mode
-        title="✏️ Fill in the blank"
-        body="Type the missing word. Good for cases and verb endings."
-        onPress={() => router.push('/cloze')}
-      />
+      <View style={styles.modes}>
+        <ModeTile icon="🗣" label="Speak" sub={`${promptsDue} prompts`} onPress={() => router.push('/respond')} />
+        <ModeTile icon="🎧" label="Dictation" sub="Hear & type" onPress={() => router.push('/dictation')} />
+        <ModeTile icon="✏️" label="Fill blank" sub="Endings" onPress={() => router.push('/cloze')} />
+      </View>
 
-      <Row>
-        <Button label="📚 Phrase library" variant="outline" onPress={() => router.push('/phrases')} />
-        <Button label="⚙️ Settings" variant="outline" onPress={() => router.push('/settings')} />
-      </Row>
+      <View style={styles.footer}>
+        <FooterLink label="📚 Phrase library" onPress={() => router.push('/phrases')} />
+        <FooterLink label="⚙️ Settings" onPress={() => router.push('/settings')} />
+      </View>
     </ScrollView>
   );
 }
 
-function DeckCard({ deck, title, p, now }: { deck: Deck; title: string; p: Progress; now: number }) {
+function deckStat(deck: (typeof DECKS)[number]['id'], p: Progress, now: number) {
   const phrases = phrasesIn(deck, p.custom);
-  if (deck === 'mine' && phrases.length === 0) {
-    return (
-      <Card style={styles.deck}>
-        <Text style={styles.h}>{title}</Text>
-        <Text style={styles.meta}>Add your own phrases in the Phrase library.</Text>
-        <Button label="＋ Add a phrase" variant="outline" onPress={() => router.push('/phrases')} />
-      </Card>
-    );
-  }
   const queue = buildQueue(phrases.map((x) => x.id), p.cards, now, newLeftToday(p, deck));
-  const dueCount = queue.filter((id) => p.cards[id]).length;
-  const newCount = queue.length - dueCount;
-  const learnedCount = phrases.filter((x) => p.cards[x.id]).length;
+  return {
+    total: phrases.length,
+    learned: phrases.filter((x) => statusOf(p.cards[x.id], now) === 'learned').length,
+    due: queue.filter((id) => p.cards[id]).length,
+    queue: queue.length,
+  };
+}
+
+function ModeTile({ icon, label, sub, onPress }: { icon: string; label: string; sub: string; onPress: () => void }) {
   return (
-    <Card style={styles.deck}>
-      <View style={styles.deckHead}>
-        <Text style={styles.h}>{title}</Text>
-        <Text style={styles.meta}>
-          {dueCount} due · {newCount} new
-        </Text>
-      </View>
-      <Row>
-        <Button
-          label={queue.length ? 'Review' : 'Done ✓'}
-          disabled={!queue.length}
-          onPress={() => router.push({ pathname: '/review', params: { deck } })}
-        />
-        <Button
-          label={`↩ Learned (${learnedCount})`}
-          variant="outline"
-          disabled={!learnedCount}
-          onPress={() => router.push({ pathname: '/review', params: { deck, mode: 'practice' } })}
-        />
-      </Row>
-    </Card>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.mode, pressed && styles.pressed]}>
+      <Text style={styles.modeIcon}>{icon}</Text>
+      <Text style={styles.modeLabel}>{label}</Text>
+      <Text style={styles.modeSub}>{sub}</Text>
+    </Pressable>
   );
 }
 
-function Mode(props: { title: string; body: string; meta?: string; disabled?: boolean; onPress: () => void }) {
+function FooterLink({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Card style={styles.deck}>
-      <Text style={styles.h}>{props.title}</Text>
-      <Text style={styles.body}>
-        {props.body}
-        {props.meta ? <Text style={styles.meta}> {props.meta}</Text> : null}
-      </Text>
-      <Button label="Start" disabled={props.disabled} onPress={props.onPress} />
-    </Card>
+    <Pressable onPress={onPress} hitSlop={8} style={({ pressed }) => [styles.footerLink, pressed && styles.pressed]}>
+      <Text style={styles.footerText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function Banner({ tone, title, body, children }: { tone: 'good' | 'warn'; title: string; body: string; children?: ReactNode }) {
+  const c = tone === 'good' ? { bg: '#E8F6EC', border: '#9FD5B0', fg: '#1B5E31' } : { bg: '#FFF4E0', border: '#F0C27A', fg: '#7A4B00' };
+  return (
+    <View style={[styles.banner, { backgroundColor: c.bg, borderColor: c.border }]}>
+      <Text style={[styles.bannerTitle, { color: c.fg }]}>{title}</Text>
+      <Text style={{ color: c.fg, lineHeight: 20 }}>{body}</Text>
+      {children}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: 16, gap: 12, paddingBottom: 32 },
-  summary: { color: colors.muted, textAlign: 'center' },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: colors.muted, letterSpacing: 1, textTransform: 'uppercase', marginTop: 6 },
-  deck: { gap: 10, padding: 16 },
-  deckHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },
-  h: { fontSize: 18, fontWeight: '700', color: colors.text, flexShrink: 1 },
-  body: { color: colors.text, fontSize: 15, lineHeight: 21 },
-  meta: { color: colors.muted },
-  update: { backgroundColor: '#E8F6EC', borderColor: '#9FD5B0', gap: 8 },
-  updateTitle: { fontWeight: '700', color: '#1B5E31' },
-  updateBody: { color: '#1B5E31', lineHeight: 20 },
-  warn: { backgroundColor: '#FFF4E0', borderColor: '#F0C27A', gap: 6 },
-  warnTitle: { fontWeight: '700', color: '#7A4B00' },
-  warnBody: { color: '#7A4B00', lineHeight: 20 },
+  wrap: { padding: 16, gap: 14, paddingBottom: 36 },
+  pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
+
+  hero: { backgroundColor: colors.primary, borderRadius: 20, padding: 22, gap: 14 },
+  heroKicker: { color: '#C9D6EA', fontSize: 12, fontWeight: '700', letterSpacing: 2 },
+  heroTitle: { color: '#FFFFFF', fontSize: 32, fontWeight: '800', marginTop: -6 },
+  heroProgress: { gap: 6 },
+  heroMeta: { color: '#C9D6EA', fontSize: 13 },
+  heroBtn: { backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  heroBtnText: { color: colors.primary, fontSize: 16, fontWeight: '700' },
+
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: colors.muted, letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 6 },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  tile: {
+    width: '47.5%',
+    flexGrow: 1,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 14,
+    gap: 6,
+  },
+  tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  tileIcon: { fontSize: 26 },
+  badge: { backgroundColor: colors.hard, borderRadius: 999, minWidth: 24, paddingHorizontal: 7, paddingVertical: 2, alignItems: 'center' },
+  badgeText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
+  tileTitle: { fontSize: 16, fontWeight: '700', color: colors.text, minHeight: 40 },
+  tileMeta: { color: colors.muted, fontSize: 12 },
+
+  modes: { flexDirection: 'row', gap: 10 },
+  mode: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 16,
+    alignItems: 'center',
+    gap: 4,
+  },
+  modeIcon: { fontSize: 26 },
+  modeLabel: { fontWeight: '700', color: colors.text },
+  modeSub: { color: colors.muted, fontSize: 12 },
+
+  footer: { flexDirection: 'row', justifyContent: 'center', gap: 28, marginTop: 8 },
+  footerLink: { paddingVertical: 8 },
+  footerText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
+
+  banner: { borderWidth: 1, borderRadius: 14, padding: 14, gap: 8 },
+  bannerTitle: { fontWeight: '700' },
 });

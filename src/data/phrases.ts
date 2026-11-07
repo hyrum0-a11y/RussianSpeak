@@ -14,13 +14,13 @@ export type Phrase = {
 
 export type Deck = 'everyday' | 'sayings' | 'movies' | 'poetry' | 'slang' | 'mine';
 
-export const DECKS: { id: Deck; title: string; blurb: string }[] = [
-  { id: 'everyday', title: 'Everyday phrases', blurb: 'Useful phrases for real conversations.' },
-  { id: 'sayings', title: 'Famous sayings', blurb: 'Russian proverbs (пословицы) that people actually use.' },
-  { id: 'movies', title: 'Movie lines', blurb: 'Iconic lines from classic Soviet and Russian films.' },
-  { id: 'poetry', title: 'Poetry & folk songs', blurb: 'Famous lines from Pushkin, Lermontov, Yesenin and traditional songs.' },
-  { id: 'slang', title: 'Slang', blurb: 'Casual words and phrases you hear every day but rarely in textbooks.' },
-  { id: 'mine', title: 'My phrases', blurb: 'Phrases you add yourself in the Phrase library.' },
+export const DECKS: { id: Deck; title: string; blurb: string; icon: string }[] = [
+  { id: 'everyday', icon: '💬', title: 'Everyday phrases', blurb: 'Useful phrases for real conversations.' },
+  { id: 'sayings', icon: '📜', title: 'Famous sayings', blurb: 'Russian proverbs (пословицы) that people actually use.' },
+  { id: 'movies', icon: '🎬', title: 'Movie lines', blurb: 'Iconic lines from classic Soviet and Russian films.' },
+  { id: 'poetry', icon: '🪶', title: 'Poetry & folk songs', blurb: 'Famous lines from Pushkin, Lermontov, Yesenin and traditional songs.' },
+  { id: 'slang', icon: '😎', title: 'Slang', blurb: 'Casual words and phrases you hear every day but rarely in textbooks.' },
+  { id: 'mine', icon: '⭐', title: 'My phrases', blurb: 'Phrases you add yourself in the Phrase library.' },
 ];
 
 export const CATEGORIES = [

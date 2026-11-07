@@ -22,8 +22,10 @@ export default function Review() {
   const params = useLocalSearchParams<{ deck?: string; mode?: string }>();
   // "practice" = go back over cards you've already learned, without changing their schedule.
   const practice = params.mode === 'practice';
-  const deck: Deck = DECKS.some((d) => d.id === params.deck) ? (params.deck as Deck) : 'everyday';
-  const deckInfo = DECKS.find((d) => d.id === deck)!;
+  // "all" = today's review across every deck.
+  const deck: Deck | 'all' =
+    params.deck === 'all' ? 'all' : DECKS.some((d) => d.id === params.deck) ? (params.deck as Deck) : 'everyday';
+  const deckTitle = deck === 'all' ? "Today's review" : DECKS.find((d) => d.id === deck)!.title;
 
   const [p] = useProgress();
   const [queue, setQueue] = useState<string[] | null>(null);
@@ -35,12 +37,18 @@ export default function Review() {
   // Build the session queue once.
   useEffect(() => {
     loadProgress().then((prog) => {
-      const ids = phrasesIn(deck, prog.custom).map((x) => x.id);
+      const decks = deck === 'all' ? DECKS.map((d) => d.id) : [deck];
+      const now = Date.now();
       if (practice) {
-        const learned = ids.filter((id) => prog.cards[id]);
-        setQueue(learned.sort(() => Math.random() - 0.5));
+        const ids = decks.flatMap((d) => phrasesIn(d, prog.custom).map((x) => x.id));
+        setQueue(ids.filter((id) => prog.cards[id]).sort(() => Math.random() - 0.5));
       } else {
-        setQueue(buildQueue(ids, prog.cards, Date.now(), newLeftToday(prog, deck)));
+        // Each deck keeps its own daily limit of new cards.
+        setQueue(
+          decks.flatMap((d) =>
+            buildQueue(phrasesIn(d, prog.custom).map((x) => x.id), prog.cards, now, newLeftToday(prog, d)),
+          ),
+        );
       }
     });
   }, [deck, practice]);
@@ -50,7 +58,7 @@ export default function Review() {
   const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue, byId]);
 
   if (!p || !queue) return null;
-  const title = <Stack.Screen options={{ title: practice ? `Practice: ${deckInfo.title}` : deckInfo.title }} />;
+  const title = <Stack.Screen options={{ title: practice ? `Practice: ${deckTitle}` : deckTitle }} />;
 
   /** Step back to the previous card and undo its grade so you can redo it. */
   async function goBack() {
@@ -104,13 +112,15 @@ export default function Review() {
   const state = p.cards[current.id] ?? newCard(Date.now());
   const isNew = !p.cards[current.id];
   const ruFirst = p.settings.front === 'ru';
+  // Russian-first cards show everything at once. English-first keeps the Russian hidden until you've tried.
+  const open = ruFirst || revealed;
 
   async function grade(g: Grade) {
     if (!current) return;
     if (!practice) {
       const next = schedule(state, g, Date.now());
       await updateProgress((prog) => {
-        const counted = isNew ? countNewIntroduced(prog, deck) : prog;
+        const counted = isNew ? countNewIntroduced(prog, current.deck) : prog;
         return touchStreak({ ...counted, cards: { ...counted.cards, [current.id]: next } });
       });
     }
@@ -135,7 +145,7 @@ export default function Review() {
 
       <Card style={styles.card}>
         {ruFirst ? ru : <Text style={styles.en}>{current.en}</Text>}
-        {revealed ? (
+        {open ? (
           <>
             <View style={styles.divider} />
             {ruFirst ? (
@@ -146,15 +156,13 @@ export default function Review() {
             {tip}
           </>
         ) : (
-          <Text style={styles.hint}>
-            {ruFirst ? 'Read it out loud. Work out what it means.' : 'Say it in Russian, out loud.'}
-          </Text>
+          <Text style={styles.hint}>Say it in Russian, out loud.</Text>
         )}
       </Card>
 
-      {revealed ? (
+      {open ? (
         <>
-          <SpeakControls text={current.ru} rate={p.settings.speechRate} autoPlay />
+          <SpeakControls text={current.ru} rate={p.settings.speechRate} autoPlay={!ruFirst} />
           <SpeechCheck text={current.ru} />
           <Text style={styles.question}>How well did you know it?</Text>
           <Row>
@@ -170,7 +178,7 @@ export default function Review() {
           </Row>
         </>
       ) : (
-        <Button label={ruFirst ? 'Hear it' : 'Show Russian'} onPress={() => setRevealed(true)} />
+        <Button label="Show Russian" onPress={() => setRevealed(true)} />
       )}
       {history.length > 0 && (
         <Pressable onPress={goBack} hitSlop={8} accessibilityRole="button">

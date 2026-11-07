@@ -23,7 +23,8 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.bg },
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'RussianSpeak' }} />
+        <Stack.Screen name="index" options={{ title: 'Home', headerShown: false }} />
+        <Stack.Screen name="deck" options={{ title: 'Deck' }} />
         <Stack.Screen name="review" options={{ title: 'Phrase review' }} />
         <Stack.Screen name="respond" options={{ title: 'Respond to prompts' }} />
         <Stack.Screen name="phrases" options={{ title: 'Phrase library' }} />
