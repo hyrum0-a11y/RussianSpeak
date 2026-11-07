@@ -6,8 +6,17 @@ export type Phrase = {
   ru: string;
   en: string;
   cat: Category;
+  deck: Deck;
   note?: string;
 };
+
+export type Deck = 'everyday' | 'sayings' | 'movies';
+
+export const DECKS: { id: Deck; title: string; blurb: string }[] = [
+  { id: 'everyday', title: 'Everyday phrases', blurb: 'Useful phrases for real conversations.' },
+  { id: 'sayings', title: 'Famous sayings', blurb: 'Russian proverbs (пословицы) that people actually use.' },
+  { id: 'movies', title: 'Movie lines', blurb: 'Iconic lines from classic Soviet and Russian films.' },
+];
 
 export const CATEGORIES = [
   'Basics',
@@ -19,6 +28,8 @@ export const CATEGORIES = [
   'Opinions',
   'Plans & time',
   'Feelings',
+  'Sayings',
+  'Movie lines',
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -131,6 +142,49 @@ const raw: [string, string, Category, string?][] = [
   ['Жаль.', "That's a pity.", 'Feelings'],
   ['Мне пло́хо.', "I feel bad / unwell.", 'Feelings'],
   ['Я в восто́рге!', "I'm thrilled!", 'Feelings'],
+
+  // Sayings — en is the meaning or English equivalent; note is the literal translation.
+  ['Без труда́ не вы́тащишь и ры́бку из пруда́.', 'No pain, no gain.', 'Sayings', 'Lit.: Without effort you won\'t even pull a little fish out of the pond.'],
+  ['Ти́ше е́дешь — да́льше бу́дешь.', 'Slow and steady wins the race.', 'Sayings', 'Lit.: The quieter you ride, the farther you\'ll get.'],
+  ['Не име́й сто рубле́й, а име́й сто друзе́й.', 'Friends are worth more than money.', 'Sayings', 'Lit.: Don\'t have a hundred rubles, have a hundred friends.'],
+  ['Лу́чше по́здно, чем никогда́.', 'Better late than never.', 'Sayings'],
+  ['Век живи́ — век учи́сь.', 'Live and learn.', 'Sayings', 'Lit.: Live a century, learn a century.'],
+  ['Москва́ не сра́зу стро́илась.', "Rome wasn't built in a day.", 'Sayings', 'Lit.: Moscow wasn\'t built all at once.'],
+  ['У́тро ве́чера мудрене́е.', "Sleep on it.", 'Sayings', 'Lit.: The morning is wiser than the evening.'],
+  ['Цыпля́т по о́сени счита́ют.', "Don't count your chickens before they hatch.", 'Sayings', 'Lit.: Chicks are counted in autumn.'],
+  ['Друзья́ познаю́тся в беде́.', 'A friend in need is a friend indeed.', 'Sayings', 'Lit.: Friends are recognized in trouble.'],
+  ['Аппети́т прихо́дит во вре́мя еды́.', 'Appetite comes with eating.', 'Sayings', 'The more you have, the more you want.'],
+  ['В гостя́х хорошо́, а до́ма лу́чше.', "There's no place like home.", 'Sayings', 'Lit.: Visiting is nice, but home is better.'],
+  ['Пе́рвый блин ко́мом.', 'The first try never goes right.', 'Sayings', 'Lit.: The first pancake comes out lumpy.'],
+  ['Сло́во не воробе́й: вы́летит — не пойма́ешь.', "You can't take back your words.", 'Sayings', 'Lit.: A word is not a sparrow: once it flies out, you won\'t catch it.'],
+  ['Волко́в боя́ться — в лес не ходи́ть.', 'Nothing ventured, nothing gained.', 'Sayings', 'Lit.: If you fear wolves, don\'t go into the forest.'],
+  ['Где то́нко, там и рвётся.', 'A chain is only as strong as its weakest link.', 'Sayings', 'Lit.: Where it\'s thin, that\'s where it tears.'],
+  ['Что напи́сано перо́м, того́ не вы́рубишь топоро́м.', "What's written down can't be undone.", 'Sayings', 'Lit.: What is written with a pen can\'t be cut out with an axe.'],
+  ['Ры́ба и́щет, где глу́бже, а челове́к — где лу́чше.', 'People go where life is better.', 'Sayings', 'Lit.: A fish looks for deeper water, a person for a better place.'],
+  ['Ко́нчил де́ло — гуля́й сме́ло.', 'Work first, then play.', 'Sayings', 'Lit.: Finished the job? Go out and have fun.'],
+  ['Ни пу́ха ни пера́! — К чёрту!', 'Good luck! — Thanks! (traditional exchange)', 'Sayings', 'Lit.: Neither fur nor feather! — To the devil! Never answer «спаси́бо».'],
+  ['Не всё коту́ ма́сленица.', "Good times don't last forever.", 'Sayings', 'Lit.: It\'s not always Maslenitsa (carnival) for the cat.'],
+
+  // Movie lines — note gives the film.
+  ['Восто́к — де́ло то́нкое.', 'The East is a delicate matter.', 'Movie lines', '«Бе́лое со́лнце пусты́ни» (1970)'],
+  ['За держа́ву оби́дно.', 'I feel hurt for my country.', 'Movie lines', '«Бе́лое со́лнце пусты́ни» (1970)'],
+  ['Я тре́бую продолже́ния банке́та!', 'I demand the banquet continue!', 'Movie lines', '«Ива́н Васи́льевич меня́ет профе́ссию» (1973)'],
+  ['Красота́-то кака́я! Лепота́!', 'What beauty! Splendor!', 'Movie lines', '«Ива́н Васи́льевич меня́ет профе́ссию» (1973). лепота́ is Old Russian.'],
+  ['На́ши лю́ди в бу́лочную на такси́ не е́здят.', "Our people don't take a taxi to the bakery.", 'Movie lines', '«Бриллиа́нтовая рука́» (1968)'],
+  ['Шоб я так жил!', 'I wish I lived like that!', 'Movie lines', '«Бриллиа́нтовая рука́» (1968). шоб is colloquial for что́бы.'],
+  ['Кака́я га́дость э́та ва́ша за́ливная ры́ба!', 'What a disgusting thing this jellied fish of yours is!', 'Movie lines', '«Иро́ния судьбы́, и́ли С лёгким па́ром!» (1975)'],
+  ['Огласи́те весь спи́сок, пожа́луйста!', 'Read out the whole list, please!', 'Movie lines', '«Опера́ция „Ы“» (1965)'],
+  ['Кто не рабо́тает, тот ест!', "Whoever doesn't work, eats!", 'Movie lines', '«Опера́ция „Ы“» (1965). A twist on «Кто не рабо́тает, тот не ест».'],
+  ['Спортсме́нка, комсомо́лка и про́сто краса́вица!', 'An athlete, a Komsomol member, and simply a beauty!', 'Movie lines', '«Кавка́зская пле́нница» (1967)'],
+  ['Короче, Склифосо́вский!', 'Get to the point!', 'Movie lines', '«Кавка́зская пле́нница» (1967). Said to someone who talks too long.'],
+  ['Птичку жа́лко.', 'I feel sorry for the little bird.', 'Movie lines', '«Кавка́зская пле́нница» (1967)'],
+  ['Вор до́лжен сиде́ть в тюрьме́!', 'A thief belongs in prison!', 'Movie lines', '«Ме́сто встре́чи измени́ть нельзя́» (1979)'],
+  ['А вас, Шти́рлиц, я попрошу́ оста́ться.', 'And you, Stirlitz, I will ask to stay.', 'Movie lines', '«Семна́дцать мгнове́ний весны́» (1973)'],
+  ['Я так ду́маю.', "That's what I think.", 'Movie lines', '«Мимино́» (1977)'],
+  ['В со́рок лет жизнь то́лько начина́ется.', 'At forty, life is just beginning.', 'Movie lines', '«Москва́ слеза́м не ве́рит» (1979)'],
+  ['Си́ла в пра́вде.', 'Strength lies in truth.', 'Movie lines', '«Брат 2» (2000): «Вот скажи́ мне, америка́нец, в чём си́ла?»'],
+  ['Тёпленькая пошла́!', "The warm water's started flowing!", 'Movie lines', '«Иро́ния судьбы́» (1975). Said when things finally get going.'],
+  ['Э́то я уда́чно зашёл!', 'Well, I dropped by at just the right time!', 'Movie lines', '«Ива́н Васи́льевич меня́ет профе́ссию» (1973)'],
 ];
 
 // The Russian text doubles as the id, so progress survives reordering or adding phrases.
@@ -139,5 +193,10 @@ export const PHRASES: Phrase[] = raw.map(([ru, en, cat, note]) => ({
   ru,
   en,
   cat,
+  deck: cat === 'Sayings' ? 'sayings' : cat === 'Movie lines' ? 'movies' : 'everyday',
   note,
 }));
+
+export function phrasesIn(deck: Deck): Phrase[] {
+  return PHRASES.filter((p) => p.deck === deck);
+}

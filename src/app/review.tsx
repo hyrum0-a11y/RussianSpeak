@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
-import { PHRASES, type Phrase } from '../data/phrases';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Stack } from 'expo-router/stack';
+import { DECKS, phrasesIn, PHRASES, type Deck, type Phrase } from '../data/phrases';
 import { buildQueue, newCard, previewInterval, schedule, type Grade } from '../lib/srs';
-import { loadProgress, today, touchStreak, updateProgress, useProgress } from '../lib/storage';
+import { countNewIntroduced, loadProgress, newLeftToday, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { SpeakControls } from '../components/SpeakControls';
 import { Button, Card, colors, Row } from '../components/ui';
 
@@ -17,6 +18,10 @@ const GRADES: { grade: Grade; label: string; color: string }[] = [
 ];
 
 export default function Review() {
+  const params = useLocalSearchParams<{ deck?: string }>();
+  const deck: Deck = DECKS.some((d) => d.id === params.deck) ? (params.deck as Deck) : 'everyday';
+  const deckInfo = DECKS.find((d) => d.id === deck)!;
+
   const [p] = useProgress();
   const [queue, setQueue] = useState<string[] | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -25,19 +30,20 @@ export default function Review() {
   // Build the session queue once.
   useEffect(() => {
     loadProgress().then((prog) => {
-      const used = prog.newIntroduced.date === today() ? prog.newIntroduced.count : 0;
-      const newLeft = Math.max(0, prog.settings.newPerDay - used);
-      setQueue(buildQueue(PHRASES.map((x) => x.id), prog.cards, Date.now(), newLeft));
+      const ids = phrasesIn(deck).map((x) => x.id);
+      setQueue(buildQueue(ids, prog.cards, Date.now(), newLeftToday(prog, deck)));
     });
-  }, []);
+  }, [deck]);
 
   const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue]);
 
   if (!p || !queue) return null;
+  const title = <Stack.Screen options={{ title: deckInfo.title }} />;
 
   if (!current) {
     return (
       <View style={styles.center}>
+        {title}
         <Text style={styles.doneTitle}>Отли́чно! 🎉</Text>
         <Text style={styles.doneBody}>You reviewed {doneCount} cards. Come back later for more.</Text>
         <Button label="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
@@ -47,17 +53,14 @@ export default function Review() {
 
   const state = p.cards[current.id] ?? newCard(Date.now());
   const isNew = !p.cards[current.id];
+  const ruFirst = p.settings.front === 'ru';
 
   async function grade(g: Grade) {
     if (!current) return;
-    const now = Date.now();
-    const next = schedule(state, g, now);
+    const next = schedule(state, g, Date.now());
     await updateProgress((prog) => {
-      const t = today();
-      const intro = isNew
-        ? { date: t, count: (prog.newIntroduced.date === t ? prog.newIntroduced.count : 0) + 1 }
-        : prog.newIntroduced;
-      return touchStreak({ ...prog, cards: { ...prog.cards, [current.id]: next }, newIntroduced: intro });
+      const counted = isNew ? countNewIntroduced(prog, deck) : prog;
+      return touchStreak({ ...counted, cards: { ...counted.cards, [current.id]: next } });
     });
     setRevealed(false);
     setDoneCount((n) => n + 1);
@@ -65,22 +68,29 @@ export default function Review() {
     setQueue((q) => (q ? [...q.slice(1), ...(g === 'again' ? [current.id] : [])] : q));
   }
 
+  const ru = <Text style={styles.ru}>{current.ru}</Text>;
+  const en = <Text style={styles.en}>{current.en}</Text>;
+  const note = current.note ? <Text style={styles.note}>💡 {current.note}</Text> : null;
+
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
+      {title}
       <Text style={styles.progress}>
         {queue.length} left{isNew ? ' · NEW' : ''} · {current.cat}
       </Text>
 
       <Card style={styles.card}>
-        <Text style={styles.en}>{current.en}</Text>
+        {ruFirst ? ru : en}
         {revealed ? (
           <>
             <View style={styles.divider} />
-            <Text style={styles.ru}>{current.ru}</Text>
-            {current.note ? <Text style={styles.note}>💡 {current.note}</Text> : null}
+            {ruFirst ? en : ru}
+            {note}
           </>
         ) : (
-          <Text style={styles.hint}>Say it in Russian, out loud.</Text>
+          <Text style={styles.hint}>
+            {ruFirst ? 'Read it out loud. What does it mean?' : 'Say it in Russian, out loud.'}
+          </Text>
         )}
       </Card>
 
@@ -95,7 +105,7 @@ export default function Review() {
           </Row>
         </>
       ) : (
-        <Button label="Show Russian" onPress={() => setRevealed(true)} />
+        <Button label={ruFirst ? 'Check meaning & hear it' : 'Show Russian'} onPress={() => setRevealed(true)} />
       )}
     </ScrollView>
   );
@@ -105,7 +115,7 @@ const styles = StyleSheet.create({
   wrap: { padding: 16, gap: 14 },
   progress: { color: colors.muted, textAlign: 'center' },
   card: { minHeight: 200, justifyContent: 'center', gap: 12 },
-  en: { fontSize: 22, textAlign: 'center', color: colors.text },
+  en: { fontSize: 20, textAlign: 'center', color: colors.text },
   ru: { fontSize: 28, fontWeight: '600', textAlign: 'center', color: colors.primary },
   hint: { color: colors.muted, textAlign: 'center' },
   note: { color: colors.muted, textAlign: 'center', fontSize: 14 },

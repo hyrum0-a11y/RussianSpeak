@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { PHRASES } from '../data/phrases';
+import { DECKS, phrasesIn, PHRASES, type Deck } from '../data/phrases';
 import { PROMPTS } from '../data/prompts';
 import { hasRussianVoice } from '../lib/speech';
 import { buildQueue } from '../lib/srs';
-import { today, useProgress } from '../lib/storage';
+import { newLeftToday, today, useProgress, type Progress } from '../lib/storage';
 import { Button, Card, colors } from '../components/ui';
 
 export default function Home() {
@@ -19,10 +19,6 @@ export default function Home() {
   if (!p) return null;
 
   const now = Date.now();
-  const newLeft = Math.max(0, p.settings.newPerDay - (p.newIntroduced.date === today() ? p.newIntroduced.count : 0));
-  const phraseQueue = buildQueue(PHRASES.map((x) => x.id), p.cards, now, newLeft);
-  const dueCount = phraseQueue.filter((id) => p.cards[id]).length;
-  const newCount = phraseQueue.length - dueCount;
   const learned = Object.values(p.cards).filter((c) => c.reps > 0).length;
   const promptsDue = buildQueue(PROMPTS.map((x) => x.id), p.prompts, now, 5).length;
 
@@ -43,20 +39,9 @@ export default function Home() {
         <Stat label="Phrases learned" value={`${learned}/${PHRASES.length}`} />
       </View>
 
-      <Card style={styles.section}>
-        <Text style={styles.h}>Phrase review</Text>
-        <Text style={styles.body}>
-          See the English, say the Russian out loud, then check yourself and compare your pronunciation.
-        </Text>
-        <Text style={styles.meta}>
-          {dueCount} due · {newCount} new today
-        </Text>
-        <Button
-          label={phraseQueue.length ? 'Start review' : 'All done for now ✓'}
-          disabled={!phraseQueue.length}
-          onPress={() => router.push('/review')}
-        />
-      </Card>
+      {DECKS.map((d) => (
+        <DeckCard key={d.id} deck={d.id} title={d.title} blurb={d.blurb} p={p} now={now} />
+      ))}
 
       <Card style={styles.section}>
         <Text style={styles.h}>Respond to prompts</Text>
@@ -72,6 +57,26 @@ export default function Home() {
         <Button label="⚙️ Settings" variant="outline" onPress={() => router.push('/settings')} />
       </View>
     </ScrollView>
+  );
+}
+
+function DeckCard({ deck, title, blurb, p, now }: { deck: Deck; title: string; blurb: string; p: Progress; now: number }) {
+  const queue = buildQueue(phrasesIn(deck).map((x) => x.id), p.cards, now, newLeftToday(p, deck));
+  const dueCount = queue.filter((id) => p.cards[id]).length;
+  const newCount = queue.length - dueCount;
+  return (
+    <Card style={styles.section}>
+      <Text style={styles.h}>{title}</Text>
+      <Text style={styles.body}>{blurb}</Text>
+      <Text style={styles.meta}>
+        {dueCount} due · {newCount} new today
+      </Text>
+      <Button
+        label={queue.length ? 'Start review' : 'All done for now ✓'}
+        disabled={!queue.length}
+        onPress={() => router.push({ pathname: '/review', params: { deck } })}
+      />
+    </Card>
   );
 }
 

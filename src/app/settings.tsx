@@ -31,7 +31,36 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={styles.h}>New phrases per day</Text>
+        <Text style={styles.h}>Phrase cards show first</Text>
+        <Row>
+          {(['ru', 'en'] as const).map((f) => (
+            <Button
+              key={f}
+              label={f === 'ru' ? 'Русский' : 'English'}
+              sub={f === 'ru' ? 'read, then recall meaning' : 'recall, then say it'}
+              variant={s.front === f ? 'solid' : 'outline'}
+              onPress={() => update((prog) => ({ ...prog, settings: { ...prog.settings, front: f } }))}
+            />
+          ))}
+        </Row>
+      </Card>
+
+      <Card style={styles.card}>
+        <Text style={styles.h}>Prompt questions</Text>
+        <Row>
+          {[true, false].map((show) => (
+            <Button
+              key={String(show)}
+              label={show ? 'Show Cyrillic' : 'Listen only'}
+              variant={s.showPromptText === show ? 'solid' : 'outline'}
+              onPress={() => update((prog) => ({ ...prog, settings: { ...prog.settings, showPromptText: show } }))}
+            />
+          ))}
+        </Row>
+      </Card>
+
+      <Card style={styles.card}>
+        <Text style={styles.h}>New phrases per day (per deck)</Text>
         <Row>
           {NEW_PER_DAY.map((n) => (
             <Button

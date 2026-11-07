@@ -18,6 +18,10 @@ export default function Respond() {
   const [showAnswers, setShowAnswers] = useState(false);
 
   useEffect(() => {
+    loadProgress().then((prog) => setShowText(prog.settings.showPromptText));
+  }, []);
+
+  useEffect(() => {
     loadProgress().then((prog) => setQueue(buildQueue(PROMPTS.map((x) => x.id), prog.prompts, Date.now(), SESSION_NEW)));
   }, []);
 
@@ -46,7 +50,7 @@ export default function Respond() {
     const state = p?.prompts[current.id] ?? newCard(Date.now());
     const next = schedule(state, g, Date.now());
     await updateProgress((prog) => touchStreak({ ...prog, prompts: { ...prog.prompts, [current.id]: next } }));
-    setShowText(false);
+    setShowText(p?.settings.showPromptText ?? true);
     setShowAnswers(false);
     setQueue((q) => (q ? q.slice(1) : q));
   }
@@ -64,7 +68,7 @@ export default function Respond() {
           </>
         ) : (
           <Pressable onPress={() => setShowText(true)}>
-            <Text style={styles.hidden}>Listen first. Tap to show the text.</Text>
+            <Text style={styles.hidden}>Listening mode. Tap to show the Cyrillic.</Text>
           </Pressable>
         )}
         <Row>
