@@ -23,7 +23,18 @@ An Android-first Expo app for practicing spoken Russian: memorizing phrases, pro
 
 **Russian voice:** If the speech sounds wrong or silent, install the Russian voice. Open Settings → System → Languages → Text-to-speech output, tap the gear next to Speech Services by Google, choose Install voice data, then Russian.
 
-## Build an installable APK (optional)
+## Build the app from your phone (no computer needed)
+
+An APK is the Android app-install file, like an .exe on Windows.
+
+1. On GitHub (the app or the website), open this repo and go to **Actions → Build Android APK → Run workflow**. It also runs automatically after every merge to `main`.
+2. Wait about 10–15 minutes for it to turn green.
+3. Open **Releases** and pick the newest "RussianSpeak build". Download the `.apk` file and open it.
+4. Android will ask you to allow installs from your browser or the GitHub app. Allow it, then tap Install.
+
+To update later, install the newer APK over the old one. Your progress is kept.
+
+## Build an APK with EAS (alternative)
 
 ```bash
 npx eas-cli@latest build --platform android --profile preview
