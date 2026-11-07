@@ -1,0 +1,161 @@
+import { useMemo, useState } from 'react';
+import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Stack } from 'expo-router/stack';
+import { DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
+import { speakRu } from '../lib/speech';
+import { buildQueue } from '../lib/srs';
+import { STATUS_LABEL, statusOf, type Status } from '../lib/status';
+import { newLeftToday, useProgress } from '../lib/storage';
+import { Button, colors, Row } from '../components/ui';
+import { ProgressBar } from '../components/ProgressBar';
+
+const STATUS_ORDER: Status[] = ['due', 'learning', 'new', 'learned'];
+const STATUS_COLOR: Record<Status, string> = {
+  due: colors.hard,
+  learning: colors.easy,
+  learned: colors.good,
+  new: colors.muted,
+};
+
+export default function DeckScreen() {
+  const params = useLocalSearchParams<{ deck?: string }>();
+  const info = DECKS.find((d) => d.id === params.deck) ?? DECKS[0];
+  const deck: Deck = info.id;
+  const [p] = useProgress();
+  const [open, setOpen] = useState<string | null>(null);
+  const [groupBy, setGroupBy] = useState<'type' | 'status'>('type');
+
+  const now = Date.now();
+  const custom = p?.custom;
+  const phrases = useMemo(() => phrasesIn(deck, custom), [deck, custom]);
+  const categories = useMemo(() => [...new Set(phrases.map((x) => x.cat))], [phrases]);
+  // A one-category deck has nothing to group by type, so group it by progress instead.
+  const mode = categories.length > 1 ? groupBy : 'status';
+
+  if (!p) return null;
+  const cards = p.cards;
+
+  const sections =
+    mode === 'type'
+      ? categories.map((cat) => ({ title: cat, data: phrases.filter((x) => x.cat === cat) }))
+      : STATUS_ORDER.map((st) => ({
+          title: STATUS_LABEL[st],
+          data: phrases.filter((x) => statusOf(cards[x.id], now) === st),
+        })).filter((s) => s.data.length);
+
+  const queue = buildQueue(phrases.map((x) => x.id), cards, now, newLeftToday(p, deck));
+  const learned = phrases.filter((x) => statusOf(cards[x.id], now) === 'learned').length;
+  const seen = phrases.filter((x) => cards[x.id]).length;
+  const rate = p.settings.speechRate;
+
+  const header = (
+    <View style={styles.header}>
+      <Text style={styles.icon}>{info.icon}</Text>
+      <Text style={styles.blurb}>{info.blurb}</Text>
+      <ProgressBar value={phrases.length ? learned / phrases.length : 0} />
+      <Text style={styles.meta}>
+        {learned} learned · {seen - learned} in progress · {phrases.length - seen} new
+      </Text>
+      <Row>
+        <Button
+          label={queue.length ? `Review (${queue.length})` : 'Done for now ✓'}
+          disabled={!queue.length}
+          onPress={() => router.push({ pathname: '/review', params: { deck } })}
+        />
+        <Button
+          label="↩ Practice seen"
+          variant="outline"
+          disabled={!seen}
+          onPress={() => router.push({ pathname: '/review', params: { deck, mode: 'practice' } })}
+        />
+      </Row>
+      {categories.length > 1 && (
+        <View style={styles.toggle}>
+          {(['type', 'status'] as const).map((g) => (
+            <Pressable key={g} onPress={() => setGroupBy(g)} style={[styles.chip, groupBy === g && styles.chipOn]}>
+              <Text style={[styles.chipText, groupBy === g && styles.chipTextOn]}>
+                {g === 'type' ? 'By type' : 'By progress'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+
+  return (
+    <>
+      <Stack.Screen options={{ title: info.title }} />
+      <SectionList
+        sections={sections}
+        keyExtractor={(x) => x.id}
+        contentContainerStyle={styles.wrap}
+        stickySectionHeadersEnabled={false}
+        ListHeaderComponent={header}
+        ListEmptyComponent={<Text style={styles.meta}>No phrases yet. Add some in the Phrase library.</Text>}
+        renderSectionHeader={({ section }) => (
+          <Text style={styles.section}>
+            {section.title} <Text style={styles.count}>{section.data.length}</Text>
+          </Text>
+        )}
+        renderItem={({ item }) => (
+          <Item
+            item={item}
+            status={statusOf(cards[item.id], now)}
+            open={open === item.id}
+            onPress={() => {
+              speakRu(item.ru, rate);
+              setOpen(open === item.id ? null : item.id);
+            }}
+          />
+        )}
+      />
+    </>
+  );
+}
+
+function Item({ item, status, open, onPress }: { item: Phrase; status: Status; open: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.item, pressed && { opacity: 0.7 }]}>
+      <View style={[styles.dot, { backgroundColor: STATUS_COLOR[status] }]} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.ru}>{item.ru}</Text>
+        {open || item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
+        {open && item.note ? <Text style={styles.note}>💡 {item.note}</Text> : null}
+      </View>
+      <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{STATUS_LABEL[status]}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { padding: 16, paddingBottom: 40 },
+  header: { gap: 12, marginBottom: 8 },
+  icon: { fontSize: 40, textAlign: 'center' },
+  blurb: { color: colors.text, textAlign: 'center', fontSize: 15, lineHeight: 21 },
+  meta: { color: colors.muted, textAlign: 'center', fontSize: 13 },
+  toggle: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 4 },
+  chip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
+  chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { color: colors.text, fontSize: 14 },
+  chipTextOn: { color: colors.primaryText, fontWeight: '600' },
+  section: { fontSize: 17, fontWeight: '700', color: colors.text, marginTop: 18, marginBottom: 8 },
+  count: { color: colors.muted, fontWeight: '400', fontSize: 14 },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 14,
+    marginBottom: 8,
+  },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  ru: { fontSize: 17, fontWeight: '600', color: colors.text },
+  en: { color: colors.muted, marginTop: 2 },
+  note: { color: colors.muted, marginTop: 6, fontSize: 13 },
+  status: { fontSize: 12, fontWeight: '600' },
+});

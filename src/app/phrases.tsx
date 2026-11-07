@@ -10,6 +10,15 @@ export default function Phrases() {
   const [p] = useProgress();
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  // Every category starts collapsed; tap a header to open it.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (title: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      return next;
+    });
   const rate = p?.settings.speechRate ?? 0.9;
   const custom = p?.custom;
 
@@ -18,9 +27,12 @@ export default function Phrases() {
     // Your own phrases first.
     const order = ['My phrases', ...CATEGORIES.filter((c) => c !== 'My phrases')];
     return order
-      .map((cat) => ({ title: cat, data: all.filter((x) => x.cat === cat) }))
-      .filter((s) => s.data.length > 0 || s.title === 'My phrases');
-  }, [custom]);
+      .map((cat) => {
+        const items = all.filter((x) => x.cat === cat);
+        return { title: cat, count: items.length, data: expanded.has(cat) ? items : [] };
+      })
+      .filter((s) => s.count > 0 || s.title === 'My phrases');
+  }, [custom, expanded]);
 
   return (
     <SectionList
@@ -29,12 +41,27 @@ export default function Phrases() {
       contentContainerStyle={styles.wrap}
       stickySectionHeadersEnabled={false}
       keyboardShouldPersistTaps="handled"
-      ListHeaderComponent={adding ? <AddForm onDone={() => setAdding(false)} /> : (
+      ListHeaderComponent={adding ? <AddForm
+          onDone={() => {
+            setAdding(false);
+            setExpanded((prev) => new Set(prev).add('My phrases'));
+          }}
+        /> : (
         <Button label="＋ Add my own phrase" onPress={() => setAdding(true)} style={{ flex: 0 }} />
       )}
-      renderSectionHeader={({ section }) => <Text style={styles.header}>{section.title}</Text>}
+      renderSectionHeader={({ section }) => {
+        const isOpen = expanded.has(section.title);
+        return (
+          <Pressable onPress={() => toggle(section.title)} style={styles.headerRow} accessibilityRole="button">
+            <Text style={styles.header}>
+              {isOpen ? '▾' : '▸'} {section.title}
+            </Text>
+            <Text style={styles.count}>{section.count}</Text>
+          </Pressable>
+        );
+      }}
       renderSectionFooter={({ section }) =>
-        section.title === 'My phrases' && section.data.length === 0 ? (
+        section.title === 'My phrases' && section.count === 0 && expanded.has('My phrases') ? (
           <Text style={styles.empty}>Nothing yet. Add phrases you hear in real life.</Text>
         ) : null
       }
@@ -102,7 +129,21 @@ function AddForm({ onDone }: { onDone: () => void }) {
 
 const styles = StyleSheet.create({
   wrap: { padding: 16, paddingBottom: 40 },
-  header: { fontSize: 18, fontWeight: '700', color: colors.text, marginTop: 16, marginBottom: 8 },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  header: { fontSize: 17, fontWeight: '700', color: colors.text },
+  count: { color: colors.muted, fontSize: 14 },
   empty: { color: colors.muted, marginBottom: 8 },
   item: {
     flexDirection: 'row',
