@@ -8,6 +8,11 @@ An Android-first Expo app for practicing spoken Russian: memorizing phrases, pro
 - **Phrase review.** By default the card shows the Cyrillic. You read it aloud and work out the meaning yourself. English stays hidden behind a "Peek" tap, except for sayings and movie lines, which show their meaning automatically. You can switch to English-first in Settings. A spaced-repetition scheduler (simplified SM-2) decides when each phrase comes back.
 - **Pronunciation.** Native text-to-speech (normal and slow speeds). You can record yourself, play your recording back, or play the native voice followed by your recording.
 - **Respond to prompts.** The app asks a question out loud. You answer out loud, record it, and compare with sample answers and a grammar hint.
+- **More decks.** Poetry and folk songs (Pushkin, Lermontov, Tyutchev, Yesenin, Blok, folk songs; all public domain) and everyday slang.
+- **My phrases.** Add your own phrases in the Phrase library. Type `'` after a vowel to mark stress. Long-press a phrase to delete it.
+- **Speech check.** Say a phrase and Android's speech recognizer shows which words it understood. Russian offline recognition may need to be added in the Google app.
+- **Dictation.** Hear a phrase with no text, type it, and see a word-by-word comparison.
+- **Fill in the blank.** One word is removed from a phrase and you type it. Good for cases and verb endings.
 - **Phrase library.** Browse by category and tap a phrase to hear it.
 - **Local progress.** Everything is saved on the phone (AsyncStorage). There is no account.
 

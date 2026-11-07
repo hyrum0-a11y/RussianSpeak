@@ -28,6 +28,8 @@ export default function RootLayout() {
         <Stack.Screen name="respond" options={{ title: 'Respond to prompts' }} />
         <Stack.Screen name="phrases" options={{ title: 'Phrase library' }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        <Stack.Screen name="dictation" options={{ title: 'Dictation' }} />
+        <Stack.Screen name="cloze" options={{ title: 'Fill in the blank' }} />
       </Stack>
     </>
   );

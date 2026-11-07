@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
-import { DECKS, phrasesIn, PHRASES, type Deck, type Phrase } from '../data/phrases';
+import { allPhrases, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
 import { buildQueue, newCard, previewInterval, schedule, type CardState, type Grade } from '../lib/srs';
 import { countNewIntroduced, loadProgress, newLeftToday, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
+import { SpeechCheck } from '../components/SpeechCheck';
 import { Button, Card, colors, Row } from '../components/ui';
 
-const byId = new Map(PHRASES.map((p) => [p.id, p]));
 
 const GRADES: { grade: Grade; label: string; color: string }[] = [
   { grade: 'again', label: 'Again', color: colors.again },
@@ -35,7 +35,7 @@ export default function Review() {
   // Build the session queue once.
   useEffect(() => {
     loadProgress().then((prog) => {
-      const ids = phrasesIn(deck).map((x) => x.id);
+      const ids = phrasesIn(deck, prog.custom).map((x) => x.id);
       if (practice) {
         const learned = ids.filter((id) => prog.cards[id]);
         setQueue(learned.sort(() => Math.random() - 0.5));
@@ -45,7 +45,9 @@ export default function Review() {
     });
   }, [deck, practice]);
 
-  const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue]);
+  const custom = p?.custom;
+  const byId = useMemo(() => new Map(allPhrases(custom).map((x) => [x.id, x])), [custom]);
+  const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue, byId]);
 
   if (!p || !queue) return null;
   const title = <Stack.Screen options={{ title: practice ? `Practice: ${deckInfo.title}` : deckInfo.title }} />;
@@ -153,6 +155,7 @@ export default function Review() {
       {revealed ? (
         <>
           <SpeakControls text={current.ru} rate={p.settings.speechRate} autoPlay />
+          <SpeechCheck text={current.ru} />
           <Text style={styles.question}>How well did you know it?</Text>
           <Row>
             {GRADES.map(({ grade: g, label, color }) => (

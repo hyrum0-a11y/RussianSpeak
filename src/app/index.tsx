@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { DECKS, phrasesIn, PHRASES, type Deck } from '../data/phrases';
+import { allPhrases, DECKS, phrasesIn, type Deck } from '../data/phrases';
 import { PROMPTS } from '../data/prompts';
 import { hasRussianVoice } from '../lib/speech';
 import { buildQueue } from '../lib/srs';
-import { newLeftToday, today, useProgress, type Progress } from '../lib/storage';
-import { Button, Card, colors } from '../components/ui';
+import { newLeftToday, useProgress, type Progress } from '../lib/storage';
+import { Button, Card, colors, Row } from '../components/ui';
 
 export default function Home() {
   const [p] = useProgress();
@@ -20,6 +20,7 @@ export default function Home() {
 
   const now = Date.now();
   const learned = Object.values(p.cards).filter((c) => c.reps > 0).length;
+  const total = allPhrases(p.custom).length;
   const promptsDue = buildQueue(PROMPTS.map((x) => x.id), p.prompts, now, 5).length;
 
   return (
@@ -28,85 +29,109 @@ export default function Home() {
         <Card style={styles.warn}>
           <Text style={styles.warnTitle}>No Russian voice found</Text>
           <Text style={styles.warnBody}>
-            On Android, open Settings → System → Languages → Text-to-speech output, tap the gear next to
-            your engine (e.g. Speech Services by Google) → Install voice data → Russian.
+            Open Settings → Russian voice in this app for the steps to install one.
           </Text>
         </Card>
       )}
 
-      <View style={styles.stats}>
-        <Stat label="Phrases learned" value={`${learned}/${PHRASES.length}`} />
-      </View>
+      <Text style={styles.summary}>
+        {learned} of {total} phrases learned
+      </Text>
 
+      <Text style={styles.sectionTitle}>Review decks</Text>
       {DECKS.map((d) => (
-        <DeckCard key={d.id} deck={d.id} title={d.title} blurb={d.blurb} p={p} now={now} />
+        <DeckCard key={d.id} deck={d.id} title={d.title} p={p} now={now} />
       ))}
 
-      <Card style={styles.section}>
-        <Text style={styles.h}>Respond to prompts</Text>
-        <Text style={styles.body}>
-          Hear a question in Russian and answer out loud. Then compare with sample answers.
-        </Text>
-        <Text style={styles.meta}>{promptsDue} ready</Text>
-        <Button label="Start speaking" disabled={!promptsDue} onPress={() => router.push('/respond')} />
-      </Card>
+      <Text style={styles.sectionTitle}>Practice</Text>
+      <Mode
+        title="🗣 Respond to prompts"
+        body="Hear a question and answer out loud."
+        meta={`${promptsDue} ready`}
+        disabled={!promptsDue}
+        onPress={() => router.push('/respond')}
+      />
+      <Mode
+        title="🎧 Dictation"
+        body="Hear a phrase with no text and type what you heard."
+        onPress={() => router.push('/dictation')}
+      />
+      <Mode
+        title="✏️ Fill in the blank"
+        body="Type the missing word. Good for cases and verb endings."
+        onPress={() => router.push('/cloze')}
+      />
 
-      <View style={styles.links}>
+      <Row>
         <Button label="📚 Phrase library" variant="outline" onPress={() => router.push('/phrases')} />
         <Button label="⚙️ Settings" variant="outline" onPress={() => router.push('/settings')} />
-      </View>
+      </Row>
     </ScrollView>
   );
 }
 
-function DeckCard({ deck, title, blurb, p, now }: { deck: Deck; title: string; blurb: string; p: Progress; now: number }) {
-  const queue = buildQueue(phrasesIn(deck).map((x) => x.id), p.cards, now, newLeftToday(p, deck));
+function DeckCard({ deck, title, p, now }: { deck: Deck; title: string; p: Progress; now: number }) {
+  const phrases = phrasesIn(deck, p.custom);
+  if (deck === 'mine' && phrases.length === 0) {
+    return (
+      <Card style={styles.deck}>
+        <Text style={styles.h}>{title}</Text>
+        <Text style={styles.meta}>Add your own phrases in the Phrase library.</Text>
+        <Button label="＋ Add a phrase" variant="outline" onPress={() => router.push('/phrases')} />
+      </Card>
+    );
+  }
+  const queue = buildQueue(phrases.map((x) => x.id), p.cards, now, newLeftToday(p, deck));
   const dueCount = queue.filter((id) => p.cards[id]).length;
   const newCount = queue.length - dueCount;
-  const learnedCount = phrasesIn(deck).filter((x) => p.cards[x.id]).length;
+  const learnedCount = phrases.filter((x) => p.cards[x.id]).length;
   return (
-    <Card style={styles.section}>
-      <Text style={styles.h}>{title}</Text>
-      <Text style={styles.body}>{blurb}</Text>
-      <Text style={styles.meta}>
-        {dueCount} due · {newCount} new today
-      </Text>
-      <Button
-        label={queue.length ? 'Start review' : 'All done for now ✓'}
-        disabled={!queue.length}
-        onPress={() => router.push({ pathname: '/review', params: { deck } })}
-      />
-      {learnedCount > 0 && (
+    <Card style={styles.deck}>
+      <View style={styles.deckHead}>
+        <Text style={styles.h}>{title}</Text>
+        <Text style={styles.meta}>
+          {dueCount} due · {newCount} new
+        </Text>
+      </View>
+      <Row>
         <Button
-          label={`↩ Practice learned (${learnedCount})`}
+          label={queue.length ? 'Review' : 'Done ✓'}
+          disabled={!queue.length}
+          onPress={() => router.push({ pathname: '/review', params: { deck } })}
+        />
+        <Button
+          label={`↩ Learned (${learnedCount})`}
           variant="outline"
+          disabled={!learnedCount}
           onPress={() => router.push({ pathname: '/review', params: { deck, mode: 'practice' } })}
         />
-      )}
+      </Row>
     </Card>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Mode(props: { title: string; body: string; meta?: string; disabled?: boolean; onPress: () => void }) {
   return (
-    <Card style={styles.stat}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <Card style={styles.deck}>
+      <Text style={styles.h}>{props.title}</Text>
+      <Text style={styles.body}>
+        {props.body}
+        {props.meta ? <Text style={styles.meta}> {props.meta}</Text> : null}
+      </Text>
+      <Button label="Start" disabled={props.disabled} onPress={props.onPress} />
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: 16, gap: 14 },
-  stats: { flexDirection: 'row', gap: 12 },
-  stat: { flex: 1, alignItems: 'center', paddingVertical: 14 },
-  statValue: { fontSize: 26, fontWeight: '700', color: colors.primary },
-  statLabel: { color: colors.muted, marginTop: 2 },
-  section: { gap: 10 },
-  h: { fontSize: 20, fontWeight: '700', color: colors.text },
+  wrap: { padding: 16, gap: 12, paddingBottom: 32 },
+  summary: { color: colors.muted, textAlign: 'center' },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: colors.muted, letterSpacing: 1, textTransform: 'uppercase', marginTop: 6 },
+  deck: { gap: 10, padding: 16 },
+  deckHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },
+  h: { fontSize: 18, fontWeight: '700', color: colors.text, flexShrink: 1 },
   body: { color: colors.text, fontSize: 15, lineHeight: 21 },
   meta: { color: colors.muted },
-  links: { flexDirection: 'row', gap: 10 },
   warn: { backgroundColor: '#FFF4E0', borderColor: '#F0C27A', gap: 6 },
   warnTitle: { fontWeight: '700', color: '#7A4B00' },
   warnBody: { color: '#7A4B00', lineHeight: 20 },

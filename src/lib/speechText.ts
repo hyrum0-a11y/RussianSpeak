@@ -32,7 +32,7 @@ function matchCase(original: string, replacement: string): string {
 
 /** Strip stress marks and ellipses, and respell silent consonants. */
 export function forSpeech(text: string): string {
-  let out = text.replace(STRESS, '').replace(/…/g, '.');
+  let out = text.replace(STRESS, '').replace(/…/g, '.').replace(/\s*\/\s*/g, ', ');
   for (const { re, to } of RESPELL) out = out.replace(re, (m) => matchCase(m, to));
   return out;
 }
