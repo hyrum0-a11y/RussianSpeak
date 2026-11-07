@@ -12,12 +12,15 @@ export type Phrase = {
   idiom: boolean;
 };
 
-export type Deck = 'everyday' | 'sayings' | 'movies';
+export type Deck = 'everyday' | 'sayings' | 'movies' | 'poetry' | 'slang' | 'mine';
 
 export const DECKS: { id: Deck; title: string; blurb: string }[] = [
   { id: 'everyday', title: 'Everyday phrases', blurb: 'Useful phrases for real conversations.' },
   { id: 'sayings', title: 'Famous sayings', blurb: 'Russian proverbs (пословицы) that people actually use.' },
   { id: 'movies', title: 'Movie lines', blurb: 'Iconic lines from classic Soviet and Russian films.' },
+  { id: 'poetry', title: 'Poetry & folk songs', blurb: 'Famous lines from Pushkin, Lermontov, Yesenin and traditional songs.' },
+  { id: 'slang', title: 'Slang', blurb: 'Casual words and phrases you hear every day but rarely in textbooks.' },
+  { id: 'mine', title: 'My phrases', blurb: 'Phrases you add yourself in the Phrase library.' },
 ];
 
 export const CATEGORIES = [
@@ -32,6 +35,9 @@ export const CATEGORIES = [
   'Feelings',
   'Sayings',
   'Movie lines',
+  'Poetry & songs',
+  'Slang',
+  'My phrases',
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -187,7 +193,55 @@ const raw: [string, string, Category, string?][] = [
   ['Си́ла в пра́вде.', 'Strength lies in truth.', 'Movie lines', '«Брат 2» (2000): «Вот скажи́ мне, америка́нец, в чём си́ла?»'],
   ['Тёпленькая пошла́!', "The warm water's started flowing!", 'Movie lines', '«Иро́ния судьбы́» (1975). Said when things finally get going.'],
   ['Э́то я уда́чно зашёл!', 'Well, I dropped by at just the right time!', 'Movie lines', '«Ива́н Васи́льевич меня́ет профе́ссию» (1973)'],
+
+  // Poetry & folk songs (all public domain). note = author / source. Line breaks shown as " / ".
+  ['Я по́мню чу́дное мгнове́нье: / Передо мно́й яви́лась ты', 'I remember a wondrous moment: / You appeared before me', 'Poetry & songs', 'Пу́шкин, «К ***» (1825)'],
+  ['Моро́з и со́лнце; день чуде́сный!', 'Frost and sun; a wonderful day!', 'Poetry & songs', 'Пу́шкин, «Зи́мнее у́тро» (1829)'],
+  ['У лукомо́рья дуб зелёный; / Злата́я цепь на ду́бе том', 'By the curved shore stands a green oak; / A golden chain on that oak', 'Poetry & songs', 'Пу́шкин, «Русла́н и Людми́ла» (1828). злата́я is poetic for золота́я.'],
+  ['Я вас люби́л: любо́вь ещё, быть мо́жет, / В душе́ мое́й уга́сла не совсе́м', 'I loved you: love, perhaps, / Has not entirely faded in my soul', 'Poetry & songs', 'Пу́шкин, «Я вас люби́л…» (1829)'],
+  ['Беле́ет па́рус одино́кий / В тума́не мо́ря голубо́м!', 'A lonely sail shows white / In the blue sea mist!', 'Poetry & songs', 'Ле́рмонтов, «Па́рус» (1832)'],
+  ['Выхожу́ оди́н я на доро́гу', 'I go out alone onto the road', 'Poetry & songs', 'Ле́рмонтов (1841)'],
+  ['Умо́м Росси́ю не поня́ть, / Арши́ном о́бщим не изме́рить', "Russia can't be understood with the mind, / Nor measured with a common yardstick", 'Poetry & songs', 'Тю́тчев (1866). арши́н is an old unit of length.'],
+  ['Люблю́ грозу́ в нача́ле ма́я', 'I love a thunderstorm in early May', 'Poetry & songs', 'Тю́тчев, «Весе́нняя гроза́» (1828)'],
+  ['Не жале́ю, не зову́, не пла́чу', "I don't regret, I don't call, I don't cry", 'Poetry & songs', 'Есе́нин (1921)'],
+  ['Ты жива́ ещё, моя́ стару́шка?', 'Are you still alive, my dear old mother?', 'Poetry & songs', 'Есе́нин, «Письмо́ ма́тери» (1924)'],
+  ['Бе́лая берёза / Под мои́м окно́м / Принакры́лась сне́гом, / То́чно серебро́м.', 'A white birch / Under my window / Has covered itself with snow, / Just like silver.', 'Poetry & songs', 'Есе́нин, «Берёза» (1913)'],
+  ['Ночь, у́лица, фона́рь, апте́ка, / Бессмы́сленный и ту́склый свет.', 'Night, street, streetlamp, pharmacy, / A meaningless and dim light.', 'Poetry & songs', 'Блок (1912)'],
+  ['А Ва́ська слу́шает да ест.', 'And Vaska the cat listens, and keeps eating.', 'Poetry & songs', 'Крыло́в, «Кот и По́вар» (1812). Said of someone who ignores criticism.'],
+  ['Ка́линка, ка́линка, ка́линка моя́! / В саду́ я́года мали́нка, мали́нка моя́!', 'Little snowball berry, my little snowball berry! / In the garden, a raspberry, my raspberry!', 'Poetry & songs', '«Ка́линка», folk song (1860)'],
+  ['Ой, моро́з, моро́з, не моро́зь меня́', "Oh frost, frost, don't freeze me", 'Poetry & songs', 'Folk song'],
+  ['Во по́ле берёза стоя́ла', 'In the field stood a birch tree', 'Poetry & songs', 'Folk song'],
+  ['Ой, то не ве́чер, то не ве́чер', "Oh, it's not evening, it's not evening", 'Poetry & songs', 'Cossack folk song'],
+
+  // Slang — en is the meaning (idioms show it automatically).
+  ['Кла́ссно!', 'Cool! Great!', 'Slang'],
+  ['Прико́льно.', "That's funny / cool.", 'Slang'],
+  ['Да ла́дно!', 'No way! / Come on!', 'Slang', 'Tone decides: surprise or disbelief.'],
+  ['Ну ты даёшь!', "Wow, you're something else!", 'Slang'],
+  ['Я в шо́ке.', "I'm shocked. / I can't believe it.", 'Slang', 'Often jokey, like "I can\'t even".'],
+  ['Забе́й.', "Forget it. / Don't worry about it.", 'Slang'],
+  ['Блин!', 'Darn! / Dang!', 'Slang', 'Lit.: pancake. A mild substitute for a swear word.'],
+  ['Капе́ц.', "It's a disaster. / We're done for.", 'Slang'],
+  ['Ни фига́ себе́!', 'Whoa! / No way!', 'Slang'],
+  ['Ща.', 'One sec. / Right now.', 'Slang', 'Short for сейча́с.'],
+  ['Норм.', "Fine. / It's OK.", 'Slang', 'Short for норма́льно.'],
+  ['Мне ле́нь.', "I can't be bothered.", 'Slang'],
+  ['Пойдём потусу́емся?', 'Want to go hang out?', 'Slang', 'тусова́ться = to hang out.'],
+  ['Э́то вообще́ кринж.', "That's so cringe.", 'Slang', 'вообще́ is often said ваще́.'],
+  ['Да изи!', 'Easy!', 'Slang', 'From English "easy".'],
+  ['Он меня́ ки́нул.', 'He ditched me. / He scammed me.', 'Slang'],
+  ['У меня́ нет бабла́.', "I'm out of dough.", 'Slang', 'бабло́ = money.'],
+  ['Без пона́тия.', 'No idea.', 'Slang'],
+  ['Не па́рься.', "Don't sweat it.", 'Slang', 'па́риться = to worry, lit. to steam in a sauna.'],
 ];
+
+const DECK_OF: Partial<Record<Category, Deck>> = {
+  Sayings: 'sayings',
+  'Movie lines': 'movies',
+  'Poetry & songs': 'poetry',
+  Slang: 'slang',
+  'My phrases': 'mine',
+};
 
 // The Russian text doubles as the id, so progress survives reordering or adding phrases.
 export const PHRASES: Phrase[] = raw.map(([ru, en, cat, note]) => ({
@@ -195,11 +249,22 @@ export const PHRASES: Phrase[] = raw.map(([ru, en, cat, note]) => ({
   ru,
   en,
   cat,
-  deck: cat === 'Sayings' ? 'sayings' : cat === 'Movie lines' ? 'movies' : 'everyday',
+  deck: DECK_OF[cat] ?? 'everyday',
   note,
-  idiom: cat === 'Sayings' || cat === 'Movie lines',
+  idiom: cat === 'Sayings' || cat === 'Movie lines' || cat === 'Slang',
 }));
 
-export function phrasesIn(deck: Deck): Phrase[] {
-  return PHRASES.filter((p) => p.deck === deck);
+export type CustomPhrase = { ru: string; en: string; note?: string };
+
+/** Turn a phrase you added yourself into a regular card. */
+export function fromCustom(c: CustomPhrase): Phrase {
+  return { id: `mine:${c.ru}`, ru: c.ru, en: c.en, note: c.note, cat: 'My phrases', deck: 'mine', idiom: false };
+}
+
+export function allPhrases(custom: CustomPhrase[] = []): Phrase[] {
+  return [...PHRASES, ...custom.map(fromCustom)];
+}
+
+export function phrasesIn(deck: Deck, custom: CustomPhrase[] = []): Phrase[] {
+  return allPhrases(custom).filter((p) => p.deck === deck);
 }

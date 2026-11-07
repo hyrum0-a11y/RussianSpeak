@@ -49,6 +49,9 @@ jobs:
       # Only build for 64-bit ARM (every modern Android phone) to keep the build fast.
       - name: Build APK
         working-directory: android
+        env:
+          # Baked into the app so it can tell when a newer release exists.
+          EXPO_PUBLIC_BUILD_NUMBER: ${{ github.run_number }}
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a -x lintVitalAnalyzeRelease -x lintVitalRelease
 
       - name: Name the APK

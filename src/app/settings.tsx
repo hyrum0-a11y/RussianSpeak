@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
-import { speakRu } from '../lib/speech';
+import { getRussianVoices, setPreferredVoice, speakRu } from '../lib/speech';
+import { pickRussianVoice, type VoiceInfo } from '../lib/speechText';
 import { resetProgress, useProgress } from '../lib/storage';
+import { BUILD_NUMBER } from '../lib/update';
 import { Button, Card, colors, Row } from '../components/ui';
 
 const RATES = [0.7, 0.9, 1.0];
@@ -8,6 +11,10 @@ const NEW_PER_DAY = [5, 10, 20];
 
 export default function Settings() {
   const [p, update] = useProgress();
+  const [voices, setVoices] = useState<VoiceInfo[] | null>(null);
+  useEffect(() => {
+    getRussianVoices().then(setVoices);
+  }, []);
   if (!p) return null;
   const s = p.settings;
 
@@ -28,6 +35,39 @@ export default function Settings() {
             />
           ))}
         </Row>
+      </Card>
+
+      <Card style={styles.card}>
+        <Text style={styles.h}>Russian voice</Text>
+        {voices === null ? null : voices.length === 0 ? (
+          <Text style={styles.body}>
+            No Russian voice is installed, so your phone reads Cyrillic with the wrong voice. Open Android
+            Settings → search "Text-to-speech" → Preferred engine (Speech Services by Google) → Install voice
+            data → Русский. Then come back here.
+          </Text>
+        ) : (
+          <>
+            <Text style={styles.body}>Tap a voice to hear it. "on device" voices work offline and are most reliable.</Text>
+            {voices.map((v) => {
+              const active = pickRussianVoice(voices, s.voiceId)?.identifier === v.identifier;
+              const label = /local/i.test(v.identifier) ? 'on device' : /network/i.test(v.identifier) ? 'needs internet' : '';
+              return (
+                <Button
+                  key={v.identifier}
+                  label={v.identifier}
+                  sub={label || undefined}
+                  variant={active ? 'solid' : 'outline'}
+                  style={{ flex: 0 }}
+                  onPress={() => {
+                    update((prog) => ({ ...prog, settings: { ...prog.settings, voiceId: v.identifier } }));
+                    setPreferredVoice(v.identifier);
+                    setTimeout(() => speakRu('Здра́вствуйте! Как дела́?', s.speechRate), 50);
+                  }}
+                />
+              );
+            })}
+          </>
+        )}
       </Card>
 
       <Card style={styles.card}>
@@ -75,7 +115,7 @@ export default function Settings() {
 
       <Card style={styles.card}>
         <Text style={styles.h}>Progress</Text>
-        <Text style={styles.body}>Your progress is saved only on this phone.</Text>
+        <Text style={styles.body}>Your progress is saved only on this phone. App build: {BUILD_NUMBER || 'dev'}.</Text>
         <Button
           label="Reset all progress"
           color={colors.again}

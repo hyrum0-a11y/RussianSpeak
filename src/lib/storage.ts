@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
-import type { Deck } from '../data/phrases';
+import type { CustomPhrase, Deck } from '../data/phrases';
 import type { CardState } from './srs';
 
 // Everything is stored on the device only.
@@ -9,6 +9,7 @@ const KEY = 'russianspeak:v1';
 export type Settings = {
   newPerDay: number;
   speechRate: number; // 1.0 = normal
+  voiceId?: string; // chosen Russian TTS voice; undefined = pick automatically
   front: 'ru' | 'en'; // what the phrase card shows first
   showPromptText: boolean; // show the Cyrillic question text in prompt drills
 };
@@ -18,6 +19,7 @@ type DayCount = { date: string; count: number };
 export type Progress = {
   cards: Record<string, CardState>;
   prompts: Record<string, CardState>;
+  custom: CustomPhrase[];
   newIntroduced: Partial<Record<Deck, DayCount>>;
   streak: { lastDay: string; days: number };
   settings: Settings;
@@ -26,6 +28,7 @@ export type Progress = {
 export const DEFAULT_PROGRESS: Progress = {
   cards: {},
   prompts: {},
+  custom: [],
   newIntroduced: {},
   streak: { lastDay: '', days: 0 },
   settings: { newPerDay: 10, speechRate: 0.9, front: 'ru', showPromptText: true },
@@ -95,8 +98,20 @@ export function touchStreak(p: Progress): Progress {
   return { ...p, streak: { lastDay: t, days } };
 }
 
+export async function addCustomPhrase(c: CustomPhrase) {
+  await updateProgress((p) => ({ ...p, custom: [...p.custom.filter((x) => x.ru !== c.ru), c] }));
+}
+
+export async function removeCustomPhrase(ru: string) {
+  await updateProgress((p) => {
+    const cards = { ...p.cards };
+    delete cards[`mine:${ru}`];
+    return { ...p, cards, custom: p.custom.filter((x) => x.ru !== ru) };
+  });
+}
+
 export async function resetProgress(): Promise<void> {
-  await updateProgress((p) => ({ ...DEFAULT_PROGRESS, settings: p.settings }));
+  await updateProgress((p) => ({ ...DEFAULT_PROGRESS, settings: p.settings, custom: p.custom }));
 }
 
 export function useProgress(): [Progress | null, typeof updateProgress] {

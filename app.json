@@ -33,6 +33,13 @@
         {
           "microphonePermission": "RussianSpeak uses the microphone so you can record and compare your pronunciation."
         }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "RussianSpeak uses the microphone so you can check your pronunciation.",
+          "speechRecognitionPermission": "RussianSpeak uses speech recognition to check your pronunciation."
+        }
       ]
     ]
   }

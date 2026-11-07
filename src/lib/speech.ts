@@ -1,15 +1,38 @@
 import * as Speech from 'expo-speech';
+import { forSpeech, isRussian, pickRussianVoice, type VoiceInfo } from './speechText';
 
-const STRESS = /́/g;
+export { forSpeech };
 
-/** Remove stress marks (and ellipses) so text-to-speech reads the text naturally. */
-export function forSpeech(text: string): string {
-  return text.replace(STRESS, '').replace(/…/g, '.');
+// The voice to use. Set from Settings via setPreferredVoice; resolved lazily.
+let preferredId: string | undefined;
+let resolved: string | undefined;
+let resolving: Promise<void> | null = null;
+
+export async function getRussianVoices(): Promise<VoiceInfo[]> {
+  try {
+    return (await Speech.getAvailableVoicesAsync()).filter(isRussian);
+  } catch {
+    return [];
+  }
+}
+
+async function resolveVoice() {
+  const voices = await getRussianVoices();
+  resolved = pickRussianVoice(voices, preferredId)?.identifier;
+}
+
+export function setPreferredVoice(id: string | undefined) {
+  preferredId = id;
+  resolving = resolveVoice();
 }
 
 export function speakRu(text: string, rate = 0.9, onDone?: () => void) {
   Speech.stop();
-  Speech.speak(forSpeech(text), { language: 'ru-RU', rate, onDone });
+  if (!resolving) resolving = resolveVoice();
+  resolving.then(() => {
+    // Passing an explicit Russian voice stops the engine from reading Cyrillic with an English voice.
+    Speech.speak(forSpeech(text), { language: 'ru-RU', voice: resolved, rate, onDone });
+  });
 }
 
 export function stopSpeaking() {
@@ -19,8 +42,7 @@ export function stopSpeaking() {
 /** True if the device has at least one Russian TTS voice installed. */
 export async function hasRussianVoice(): Promise<boolean> {
   try {
-    const voices = await Speech.getAvailableVoicesAsync();
-    return voices.some((v) => v.language.toLowerCase().startsWith('ru'));
+    return (await getRussianVoices()).length > 0;
   } catch {
     return true; // can't tell; don't nag
   }
