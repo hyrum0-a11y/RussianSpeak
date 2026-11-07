@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { DECKS, phrasesIn, PHRASES, type Deck, type Phrase } from '../data/phrases';
-import { buildQueue, newCard, previewInterval, schedule, type Grade } from '../lib/srs';
+import { buildQueue, newCard, previewInterval, schedule, type CardState, type Grade } from '../lib/srs';
 import { countNewIntroduced, loadProgress, newLeftToday, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
@@ -19,7 +19,9 @@ const GRADES: { grade: Grade; label: string; color: string }[] = [
 ];
 
 export default function Review() {
-  const params = useLocalSearchParams<{ deck?: string }>();
+  const params = useLocalSearchParams<{ deck?: string; mode?: string }>();
+  // "practice" = go back over cards you've already learned, without changing their schedule.
+  const practice = params.mode === 'practice';
   const deck: Deck = DECKS.some((d) => d.id === params.deck) ? (params.deck as Deck) : 'everyday';
   const deckInfo = DECKS.find((d) => d.id === deck)!;
 
@@ -27,26 +29,71 @@ export default function Review() {
   const [queue, setQueue] = useState<string[] | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
+  // Cards finished this session, so you can step back to them.
+  const [history, setHistory] = useState<{ id: string; before?: CardState; again: boolean }[]>([]);
 
   // Build the session queue once.
   useEffect(() => {
     loadProgress().then((prog) => {
       const ids = phrasesIn(deck).map((x) => x.id);
-      setQueue(buildQueue(ids, prog.cards, Date.now(), newLeftToday(prog, deck)));
+      if (practice) {
+        const learned = ids.filter((id) => prog.cards[id]);
+        setQueue(learned.sort(() => Math.random() - 0.5));
+      } else {
+        setQueue(buildQueue(ids, prog.cards, Date.now(), newLeftToday(prog, deck)));
+      }
     });
-  }, [deck]);
+  }, [deck, practice]);
 
   const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue]);
 
   if (!p || !queue) return null;
-  const title = <Stack.Screen options={{ title: deckInfo.title }} />;
+  const title = <Stack.Screen options={{ title: practice ? `Practice: ${deckInfo.title}` : deckInfo.title }} />;
+
+  /** Step back to the previous card and undo its grade so you can redo it. */
+  async function goBack() {
+    const last = history[history.length - 1];
+    if (!last) return;
+    if (!practice) {
+      await updateProgress((prog) => {
+        const cards = { ...prog.cards };
+        if (last.before) cards[last.id] = last.before;
+        else delete cards[last.id];
+        return { ...prog, cards };
+      });
+    }
+    setHistory((h) => h.slice(0, -1));
+    setDoneCount((n) => Math.max(0, n - 1));
+    setQueue((q) => {
+      if (!q) return q;
+      // An "Again" card was also re-queued at the end; drop that copy.
+      const rest = last.again ? q.slice(0, q.lastIndexOf(last.id)).concat(q.slice(q.lastIndexOf(last.id) + 1)) : q;
+      return [last.id, ...rest];
+    });
+    setRevealed(true);
+  }
 
   if (!current) {
     return (
       <View style={styles.center}>
         {title}
         <Text style={styles.doneTitle}>Отли́чно! 🎉</Text>
-        <Text style={styles.doneBody}>You reviewed {doneCount} cards. Come back later for more.</Text>
+        <Text style={styles.doneBody}>
+          {doneCount
+            ? `You went through ${doneCount} cards.${practice ? '' : ' Come back later for more.'}`
+            : 'Nothing here yet. Learn a few cards first.'}
+        </Text>
+        {history.length > 0 && (
+          <Button label="↩ Back to last card" variant="outline" onPress={goBack} style={{ flex: 0, alignSelf: 'stretch' }} />
+        )}
+        {!practice && (
+          <Button
+            label="Practice learned cards"
+            variant="outline"
+            onPress={() => router.replace({ pathname: '/review', params: { deck, mode: 'practice' } })}
+            style={{ flex: 0, alignSelf: 'stretch' }}
+          />
+        )}
         <Button label="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
@@ -58,15 +105,18 @@ export default function Review() {
 
   async function grade(g: Grade) {
     if (!current) return;
-    const next = schedule(state, g, Date.now());
-    await updateProgress((prog) => {
-      const counted = isNew ? countNewIntroduced(prog, deck) : prog;
-      return touchStreak({ ...counted, cards: { ...counted.cards, [current.id]: next } });
-    });
+    if (!practice) {
+      const next = schedule(state, g, Date.now());
+      await updateProgress((prog) => {
+        const counted = isNew ? countNewIntroduced(prog, deck) : prog;
+        return touchStreak({ ...counted, cards: { ...counted.cards, [current.id]: next } });
+      });
+    }
+    setHistory((h) => [...h, { id: current.id, before: p?.cards[current.id], again: g === 'again' && !practice }]);
     setRevealed(false);
     setDoneCount((n) => n + 1);
     // "Again" puts the card back at the end of this session.
-    setQueue((q) => (q ? [...q.slice(1), ...(g === 'again' ? [current.id] : [])] : q));
+    setQueue((q) => (q ? [...q.slice(1), ...(g === 'again' && !practice ? [current.id] : [])] : q));
   }
 
   const ru = <Text style={styles.ru}>{current.ru}</Text>;
@@ -78,6 +128,7 @@ export default function Review() {
       {title}
       <Text style={styles.progress}>
         {queue.length} left{isNew ? ' · NEW' : ''} · {current.cat}
+        {practice ? ' · practice (schedule unchanged)' : ''}
       </Text>
 
       <Card style={styles.card}>
@@ -105,12 +156,23 @@ export default function Review() {
           <Text style={styles.question}>How well did you know it?</Text>
           <Row>
             {GRADES.map(({ grade: g, label, color }) => (
-              <Button key={g} label={label} sub={previewInterval(state, g, Date.now())} color={color} onPress={() => grade(g)} />
+              <Button
+                key={g}
+                label={label}
+                sub={practice ? undefined : previewInterval(state, g, Date.now())}
+                color={color}
+                onPress={() => grade(g)}
+              />
             ))}
           </Row>
         </>
       ) : (
         <Button label={ruFirst ? 'Hear it' : 'Show Russian'} onPress={() => setRevealed(true)} />
+      )}
+      {history.length > 0 && (
+        <Pressable onPress={goBack} hitSlop={8} accessibilityRole="button">
+          <Text style={styles.back}>↩ Previous card</Text>
+        </Pressable>
       )}
     </ScrollView>
   );
@@ -126,6 +188,7 @@ const styles = StyleSheet.create({
   note: { color: colors.muted, textAlign: 'center', fontSize: 14 },
   divider: { height: 1, backgroundColor: colors.border },
   question: { textAlign: 'center', color: colors.muted, marginTop: 4 },
+  back: { textAlign: 'center', color: colors.primary, fontSize: 15, paddingVertical: 6 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 14 },
   doneTitle: { fontSize: 30, fontWeight: '700', color: colors.text },
   doneBody: { color: colors.muted, textAlign: 'center' },

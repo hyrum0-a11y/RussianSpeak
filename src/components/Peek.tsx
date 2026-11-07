@@ -17,16 +17,19 @@ export function Peek({ en, extra, open = false }: { en: string; extra?: string; 
       </Pressable>
     );
   }
+  // Tap the English again to hide it.
   return (
-    <>
+    <Pressable onPress={() => setShown(false)} hitSlop={8} accessibilityRole="button" accessibilityHint="Hides the English">
       <Text style={styles.en}>{en}</Text>
       {extra ? <Text style={styles.extra}>{extra}</Text> : null}
-    </>
+      <Text style={styles.hide}>🙈 Hide English</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   peek: { color: colors.primary, textAlign: 'center', fontSize: 15, paddingVertical: 4 },
   en: { fontSize: 18, textAlign: 'center', color: colors.text },
-  extra: { color: colors.muted, textAlign: 'center', fontSize: 14 },
+  extra: { color: colors.muted, textAlign: 'center', fontSize: 14, marginTop: 4 },
+  hide: { color: colors.primary, textAlign: 'center', fontSize: 13, marginTop: 6 },
 });

@@ -35,7 +35,6 @@ export default function Home() {
       )}
 
       <View style={styles.stats}>
-        <Stat label="Day streak" value={streakAlive(p.streak.lastDay) ? p.streak.days : 0} />
         <Stat label="Phrases learned" value={`${learned}/${PHRASES.length}`} />
       </View>
 
@@ -64,6 +63,7 @@ function DeckCard({ deck, title, blurb, p, now }: { deck: Deck; title: string; b
   const queue = buildQueue(phrasesIn(deck).map((x) => x.id), p.cards, now, newLeftToday(p, deck));
   const dueCount = queue.filter((id) => p.cards[id]).length;
   const newCount = queue.length - dueCount;
+  const learnedCount = phrasesIn(deck).filter((x) => p.cards[x.id]).length;
   return (
     <Card style={styles.section}>
       <Text style={styles.h}>{title}</Text>
@@ -76,14 +76,15 @@ function DeckCard({ deck, title, blurb, p, now }: { deck: Deck; title: string; b
         disabled={!queue.length}
         onPress={() => router.push({ pathname: '/review', params: { deck } })}
       />
+      {learnedCount > 0 && (
+        <Button
+          label={`↩ Practice learned (${learnedCount})`}
+          variant="outline"
+          onPress={() => router.push({ pathname: '/review', params: { deck, mode: 'practice' } })}
+        />
+      )}
     </Card>
   );
-}
-
-function streakAlive(lastDay: string) {
-  const y = new Date();
-  y.setDate(y.getDate() - 1);
-  return lastDay === today() || lastDay === today(y);
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
