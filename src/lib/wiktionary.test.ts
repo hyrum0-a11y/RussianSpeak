@@ -37,3 +37,20 @@ test('wordList dedupes and keeps stress marks', () => {
 test('stems shortens words', () => {
   assert.deepEqual(stems('говорю'), ['говор', 'гово', 'гов']);
 });
+
+import { markWord, russianExamples } from './wiktionary.ts';
+
+test('russianExamples pulls example sentences', () => {
+  const ex = russianExamples(PAGE);
+  assert.deepEqual(ex, ['Большой дом.', 'ещё'].filter((x) => x.length >= 8));
+});
+
+test('russianExamples handles nested templates and named args', () => {
+  const page = '= {{-ru-}} =\n==== Значение ====\n# смысл {{пример|Я вижу {{выдел|дом}} на горе.|Автор|Книга}}\n# другое {{пример|текст=Мы идём домой вечером.}}\n';
+  assert.deepEqual(russianExamples(page), ['Я вижу дом на горе.', 'Мы идём домой вечером.']);
+});
+
+test('markWord highlights forms of the word', () => {
+  const parts = markWord('Мы идём домой, где наш дом.', 'дом');
+  assert.deepEqual(parts.filter((p) => p.hit).map((p) => p.text), ['домой,', 'дом.']);
+});

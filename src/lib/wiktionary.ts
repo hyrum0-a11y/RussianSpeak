@@ -116,3 +116,76 @@ export function stems(key: string): string[] {
   for (let cut = 1; cut <= 3 && key.length - cut >= 3; cut++) out.push(key.slice(0, key.length - cut));
   return out;
 }
+
+/** First argument of every {{пример|…}} template, handling nested templates. */
+function exampleArgs(line: string): string[] {
+  const out: string[] = [];
+  let i = 0;
+  while ((i = line.indexOf('{{пример', i)) !== -1) {
+    let depth = 0;
+    let j = i;
+    let argStart = -1;
+    let argEnd = -1;
+    for (; j < line.length; j++) {
+      if (line.startsWith('{{', j)) {
+        depth++;
+        j++;
+      } else if (line.startsWith('}}', j)) {
+        depth--;
+        j++;
+        if (depth === 0) {
+          if (argStart !== -1 && argEnd === -1) argEnd = j - 1;
+          break;
+        }
+      } else if (line[j] === '|' && depth === 1) {
+        if (argStart === -1) argStart = j + 1;
+        else if (argEnd === -1) argEnd = j;
+      }
+    }
+    if (argStart !== -1) out.push(line.slice(argStart, argEnd === -1 ? j - 1 : argEnd));
+    i = j + 1;
+  }
+  return out;
+}
+
+/** Example sentences (from {{пример}}) in the Russian meanings of a Wiktionary page. */
+export function russianExamples(wikitext: string, max = 12): string[] {
+  const out: string[] = [];
+  let inRu = false;
+  let inMeaning = false;
+  for (const line of wikitext.split('\n')) {
+    const lang = /^=\s*\{\{-([\w-]+)-\}\}/.exec(line);
+    if (lang) {
+      inRu = lang[1] === 'ru';
+      inMeaning = false;
+      continue;
+    }
+    if (!inRu) continue;
+    if (/^=+\s*Значение\s*=+/.test(line)) {
+      inMeaning = true;
+      continue;
+    }
+    if (/^=+/.test(line)) {
+      inMeaning = false;
+      continue;
+    }
+    if (!inMeaning || !line.startsWith('#')) continue;
+    for (const raw of exampleArgs(line)) {
+      const ex = cleanDefinition(
+        raw.replace(/^\s*текст\s*=/, '').replace(/\{\{\s*(?:выдел|w|l)\s*\|([^{}|]*)(?:\|[^{}]*)?\}\}/g, '$1'),
+      );
+      if (ex.length >= 8 && !out.includes(ex)) out.push(ex);
+      if (out.length >= max) return out;
+    }
+  }
+  return out;
+}
+
+/** Split a sentence into pieces, marking the words that are forms of `word` (same stem). */
+export function markWord(sentence: string, word: string): { text: string; hit: boolean }[] {
+  const key = normalizeWord(word);
+  const stem = key.length <= 4 ? key : key.slice(0, Math.max(4, key.length - 2));
+  return sentence
+    .split(/(\s+)/)
+    .map((text) => ({ text, hit: !/^\s*$/.test(text) && normalizeWord(text).startsWith(stem) }));
+}

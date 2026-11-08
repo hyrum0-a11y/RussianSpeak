@@ -132,6 +132,14 @@ export default function Home() {
         <ModeTile icon="🎧" label="Dictation" sub="Hear & type" onPress={() => router.push('/dictation')} />
         <ModeTile icon="✏️" label="Fill blank" sub="Endings" onPress={() => router.push('/cloze')} />
       </View>
+      <Pressable onPress={() => router.push('/words')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
+        <Text style={styles.modeIcon}>📝</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.modeLabel}>Мои слова · {p.words.length}</Text>
+          <Text style={styles.modeSub}>New words, learned inside real sentences</Text>
+        </View>
+        <Text style={styles.chev}>›</Text>
+      </Pressable>
       <Pressable onPress={() => router.push('/songs')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
         <Text style={styles.modeIcon}>🎵</Text>
         <View style={{ flex: 1 }}>
