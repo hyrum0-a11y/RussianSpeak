@@ -45,5 +45,6 @@ test('gradeOf uses the last grade, or guesses for old cards', () => {
   assert.equal(gradeOf(schedule(newCard(now), 'hard', now)), 'hard');
   assert.equal(gradeOf({ reps: 2, interval: 6, ease: 2.2, due: now, lapses: 0 }), 'hard');
   assert.equal(gradeOf({ reps: 2, interval: 6, ease: 2.5, due: now, lapses: 0 }), 'good');
-  assert.equal(gradeOf({ reps: 0, interval: 0, ease: 2.3, due: now, lapses: 1 }), 'again');
+  assert.equal(gradeOf({ reps: 0, interval: 0, ease: 2.3, due: now, lapses: 1 }), 'hard');
+  assert.equal(gradeOf({ ...newCard(now), last: 'again' }), 'hard');
 });

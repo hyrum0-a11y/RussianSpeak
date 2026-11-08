@@ -13,7 +13,6 @@ import { Button, Card, colors, Row } from '../components/ui';
 
 
 const GRADES: { grade: Grade; label: string; color: string }[] = [
-  { grade: 'again', label: 'Again', color: colors.again },
   { grade: 'hard', label: 'Hard', color: colors.hard },
   { grade: 'good', label: 'Good', color: colors.good },
   { grade: 'easy', label: 'Easy', color: colors.easy },
@@ -21,7 +20,7 @@ const GRADES: { grade: Grade; label: string; color: string }[] = [
 
 export default function Review() {
   const params = useLocalSearchParams<{ deck?: string; mode?: string; id?: string; level?: string }>();
-  // "level" = practice cards by your last grade (e.g. "again,hard").
+  // "level" = practice cards by your last grade (e.g. "hard" or "hard,good").
   const levels = params.level ? (params.level.split(',') as Grade[]) : null;
   // "id" = one card opened from a deck page. It counts as a real review if it's new or due.
   const single = params.id;
@@ -51,7 +50,7 @@ export default function Review() {
       const now = Date.now();
       if (levels) {
         const ids = DECKS.flatMap((d) => phrasesIn(d.id, prog.custom).map((x) => x.id));
-        setQueue(ids.filter((id) => prog.cards[id] && levels.includes(gradeOf(prog.cards[id]))).sort(() => Math.random() - 0.5));
+        setQueue(ids.filter((id) => prog.cards[id] && (levels as string[]).includes(gradeOf(prog.cards[id]))).sort(() => Math.random() - 0.5));
       } else if (single) {
         const c = prog.cards[single];
         setNotDue(!!c && c.due > now);

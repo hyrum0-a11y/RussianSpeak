@@ -33,7 +33,7 @@ export default function RootLayout() {
         <Stack.Screen name="cloze" options={{ title: 'Fill in the blank' }} />
         <Stack.Screen name="songs" options={{ title: 'Songs' }} />
         <Stack.Screen name="dictionary" options={{ title: 'Словарь' }} />
-        <Stack.Screen name="difficult" options={{ title: 'Difficult' }} />
+        <Stack.Screen name="level" options={{ title: 'Cards' }} />
         <Stack.Screen name="song" options={{ title: 'Song' }} />
       </Stack>
     </>

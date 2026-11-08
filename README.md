@@ -14,8 +14,7 @@ An Android-first Expo app for practicing spoken Russian: memorizing phrases, pro
 - **Dictation.** Hear a phrase with no text, type it, and see a word-by-word comparison.
 - **Fill in the blank.** One word is removed from a phrase and you type it. Good for cases and verb endings.
 - **Sing along.** Pick a song from a built-in list of popular Russian artists (or search any song), then add its YouTube video or an audio file on your phone. The app finds timed lyrics online (from LRCLIB, a free lyrics library), so each line lights up as it's sung. Play at 0.5×–1.25× and pause anytime. If the lyrics run early or late, nudge them with Earlier / Later.
-- **Practice by grade.** The home screen shows how many cards you last marked Again, Hard, Good or Easy. Tap one to drill just those (your schedule isn't changed, but the new grade is remembered).
-- **Difficult.** A page listing every card you last marked Again or Hard. Mark one Good or Easy and it leaves the list.
+- **Hard / Good / Easy lists.** The home screen shows how many phrases you last marked Hard, Good or Easy. Tap one to see that list by category (collapsed at first); tap a phrase to open its card, or practice the whole list. There is no "Again" button; older "Again" marks count as Hard.
 - **Ask AI.** On any card or dictionary word, tap 🤖 Спросить ИИ to write a question in Russian (add your own if you like) and send it to any AI app through the share menu, or copy it.
 - **Словарь.** A Russian-only dictionary of every word in your cards, searchable. Tap a word for its meanings from Викисловарь (Russian Wiktionary), or search any word.
 - **Phrase library.** Browse by category and tap a phrase to hear it.
