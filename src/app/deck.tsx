@@ -3,7 +3,6 @@ import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
-import { speakRu } from '../lib/speech';
 import { buildQueue } from '../lib/srs';
 import { STATUS_LABEL, statusOf, type Status } from '../lib/status';
 import { newLeftToday, useProgress } from '../lib/storage';
@@ -23,7 +22,6 @@ export default function DeckScreen() {
   const info = DECKS.find((d) => d.id === params.deck) ?? DECKS[0];
   const deck: Deck = info.id;
   const [p] = useProgress();
-  const [open, setOpen] = useState<string | null>(null);
   const [groupBy, setGroupBy] = useState<'type' | 'status'>('type');
 
   const now = Date.now();
@@ -47,7 +45,6 @@ export default function DeckScreen() {
   const queue = buildQueue(phrases.map((x) => x.id), cards, now, newLeftToday(p, deck));
   const learned = phrases.filter((x) => statusOf(cards[x.id], now) === 'learned').length;
   const seen = phrases.filter((x) => cards[x.id]).length;
-  const rate = p.settings.speechRate;
 
   const header = (
     <View style={styles.header}>
@@ -103,11 +100,7 @@ export default function DeckScreen() {
           <Item
             item={item}
             status={statusOf(cards[item.id], now)}
-            open={open === item.id}
-            onPress={() => {
-              speakRu(item.ru, rate);
-              setOpen(open === item.id ? null : item.id);
-            }}
+            onPress={() => router.push({ pathname: '/review', params: { deck, id: item.id } })}
           />
         )}
       />
@@ -115,14 +108,14 @@ export default function DeckScreen() {
   );
 }
 
-function Item({ item, status, open, onPress }: { item: Phrase; status: Status; open: boolean; onPress: () => void }) {
+/** Tapping a phrase opens it as a full card (hear, record, speech check, peek, grade). */
+function Item({ item, status, onPress }: { item: Phrase; status: Status; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.item, pressed && { opacity: 0.7 }]}>
       <View style={[styles.dot, { backgroundColor: STATUS_COLOR[status] }]} />
       <View style={{ flex: 1 }}>
         <Text style={styles.ru}>{item.ru}</Text>
-        {open || item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
-        {open && item.note ? <Text style={styles.note}>💡 {item.note}</Text> : null}
+        {item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
       </View>
       <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{STATUS_LABEL[status]}</Text>
     </Pressable>
@@ -156,6 +149,5 @@ const styles = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4 },
   ru: { fontSize: 17, fontWeight: '600', color: colors.text },
   en: { color: colors.muted, marginTop: 2 },
-  note: { color: colors.muted, marginTop: 6, fontSize: 13 },
   status: { fontSize: 12, fontWeight: '600' },
 });

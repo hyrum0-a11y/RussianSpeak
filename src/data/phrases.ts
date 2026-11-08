@@ -17,7 +17,7 @@ export type Deck = 'everyday' | 'sayings' | 'movies' | 'poetry' | 'slang' | 'min
 export const DECKS: { id: Deck; title: string; blurb: string; icon: string }[] = [
   { id: 'everyday', icon: '💬', title: 'Everyday phrases', blurb: 'Useful phrases for real conversations.' },
   { id: 'sayings', icon: '📜', title: 'Famous sayings', blurb: 'Russian proverbs (пословицы) that people actually use.' },
-  { id: 'movies', icon: '🎬', title: 'Movie lines', blurb: 'Iconic lines from classic Soviet and Russian films.' },
+  { id: 'movies', icon: '🎬', title: 'Movie lines', blurb: 'Iconic lines from Soviet classics to newer Russian films.' },
   { id: 'poetry', icon: '🪶', title: 'Poetry & folk songs', blurb: 'Famous lines from Pushkin, Lermontov, Yesenin and traditional songs.' },
   { id: 'slang', icon: '😎', title: 'Slang', blurb: 'Casual words and phrases you hear every day but rarely in textbooks.' },
   { id: 'mine', icon: '⭐', title: 'My phrases', blurb: 'Phrases you add yourself in the Phrase library.' },
@@ -193,6 +193,10 @@ const raw: [string, string, Category, string?][] = [
   ['Си́ла в пра́вде.', 'Strength lies in truth.', 'Movie lines', '«Брат 2» (2000): «Вот скажи́ мне, америка́нец, в чём си́ла?»'],
   ['Тёпленькая пошла́!', "The warm water's started flowing!", 'Movie lines', '«Иро́ния судьбы́» (1975). Said when things finally get going.'],
   ['Э́то я уда́чно зашёл!', 'Well, I dropped by at just the right time!', 'Movie lines', '«Ива́н Васи́льевич меня́ет профе́ссию» (1973)'],
+  ['Ру́сские на войне́ свои́х не броса́ют.', "Russians don't abandon their own in war.", 'Movie lines', '«Брат 2» (2000)'],
+  ['Вы мне, га́ды, ещё за Севасто́поль отве́тите!', "You bastards will still answer to me for Sevastopol!", 'Movie lines', '«Брат 2» (2000)'],
+  ['Не мы таки́е — жизнь така́я.', "It's not us, it's life that's like this.", 'Movie lines', '«Бу́мер» (2003)'],
+  ['Пацаны́ не извиня́ются.', "Real guys don't apologize.", 'Movie lines', '«Сло́во пацана́» (2023, TV series). пацан is slang for a lad from the street.'],
 
   // Poetry & folk songs (all public domain). note = author / source. Line breaks shown as " / ".
   ['Я по́мню чу́дное мгнове́нье: / Передо мно́й яви́лась ты', 'I remember a wondrous moment: / You appeared before me', 'Poetry & songs', 'Пу́шкин, «К ***» (1825)'],
