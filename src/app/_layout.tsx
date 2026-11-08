@@ -31,6 +31,8 @@ export default function RootLayout() {
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
         <Stack.Screen name="dictation" options={{ title: 'Dictation' }} />
         <Stack.Screen name="cloze" options={{ title: 'Fill in the blank' }} />
+        <Stack.Screen name="songs" options={{ title: 'Songs' }} />
+        <Stack.Screen name="song" options={{ title: 'Song' }} />
       </Stack>
     </>
   );

@@ -111,6 +111,14 @@ export default function Home() {
         <ModeTile icon="🎧" label="Dictation" sub="Hear & type" onPress={() => router.push('/dictation')} />
         <ModeTile icon="✏️" label="Fill blank" sub="Endings" onPress={() => router.push('/cloze')} />
       </View>
+      <Pressable onPress={() => router.push('/songs')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
+        <Text style={styles.modeIcon}>🎵</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.modeLabel}>Sing along</Text>
+          <Text style={styles.modeSub}>YouTube or your own files, lyrics light up</Text>
+        </View>
+        <Text style={styles.chev}>›</Text>
+      </Pressable>
 
       <View style={styles.footer}>
         <FooterLink label="📚 Phrase library" onPress={() => router.push('/phrases')} />
@@ -204,6 +212,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   modeIcon: { fontSize: 26 },
+  songs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+  },
+  chev: { fontSize: 26, color: colors.muted },
   modeLabel: { fontWeight: '700', color: colors.text },
   modeSub: { color: colors.muted, fontSize: 12 },
 
