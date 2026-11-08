@@ -19,6 +19,7 @@ export type SavedWord = {
   word: string; // dictionary form, e.g. "дом"
   meanings: string[]; // Russian definitions
   examples: string[]; // sentences that use it
+  phrases?: string[]; // set phrases with the word, e.g. "иди ко мне"
   added: number;
   level?: Level; // your last Hard / Good / Easy
   seen: number; // practice count, used to rotate examples

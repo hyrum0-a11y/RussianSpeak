@@ -126,7 +126,7 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
           {i + 1}. {m}
         </Text>
       ))}
-      <SaveWord title={entry.title} meanings={entry.meanings} examples={entry.examples} />
+      <SaveWord title={entry.title} meanings={entry.meanings} examples={entry.examples} phrases={entry.phrases} />
       <AskAI text={word} />
       <Pressable onPress={() => Linking.openURL(wiktionaryUrl(entry.title))} hitSlop={6}>
         <Text style={styles.source}>Викисловарь ↗</Text>
@@ -136,7 +136,7 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
 }
 
 /** "＋ В мои слова": keep the word with example sentences from Викисловарь and from your cards. */
-function SaveWord({ title, meanings, examples }: { title: string; meanings: string[]; examples: string[] }) {
+function SaveWord({ title, meanings, examples, phrases }: { title: string; meanings: string[]; examples: string[]; phrases: string[] }) {
   const [p] = useProgress();
   if (!p) return null;
   const saved = p.words.some((w) => w.word === title);
@@ -146,7 +146,7 @@ function SaveWord({ title, meanings, examples }: { title: string; meanings: stri
     .filter((ru) => markWord(ru, title).some((part) => part.hit));
   return (
     <Pressable
-      onPress={() => saveWord({ word: title, meanings, examples: [...new Set([...examples, ...fromCards])].slice(0, 15) })}
+      onPress={() => saveWord({ word: title, meanings, phrases, examples: [...new Set([...fromCards, ...examples])].slice(0, 15) })}
       style={styles.saveBtn}
       accessibilityRole="button"
     >

@@ -184,8 +184,77 @@ export function russianExamples(wikitext: string, max = 12): string[] {
 /** Split a sentence into pieces, marking the words that are forms of `word` (same stem). */
 export function markWord(sentence: string, word: string): { text: string; hit: boolean }[] {
   const key = normalizeWord(word);
-  const stem = key.length <= 4 ? key : key.slice(0, Math.max(4, key.length - 2));
+  // Verbs: drop the infinitive ending (идти → ид-, говорить → говор-). Others: drop up to 2 letters.
+  const verb = /(ться|тись|ть|ти|чь)$/.exec(key);
+  const stem = verb
+    ? key.slice(0, Math.max(2, key.length - verb[0].length - (/[аеиоуяю]$/.test(key.slice(0, -verb[0].length)) ? 1 : 0)))
+    : key.length <= 4
+      ? key
+      : key.slice(0, Math.max(4, key.length - 2));
   return sentence
     .split(/(\s+)/)
     .map((text) => ({ text, hit: !/^\s*$/.test(text) && normalizeWord(text).startsWith(stem) }));
+}
+
+/**
+ * A short phrase around the word, e.g. "…он сказал: иди ко мне скорее." → "иди ко мне скорее".
+ * Takes up to 2 words before and 3 after, stopping at punctuation that ends a clause.
+ */
+export function contextChunk(sentence: string, word: string): string {
+  const tokens = sentence.split(/\s+/).filter(Boolean);
+  const parts = markWord(tokens.join(' '), word).filter((p) => p.text.trim());
+  const i = parts.findIndex((p) => p.hit);
+  if (i === -1) return sentence;
+  const ends = (t: string) => /[.,;:!?…»)]$/.test(t);
+  let start = i;
+  while (start > 0 && i - start < 2 && !ends(parts[start - 1].text)) start--;
+  let end = i;
+  while (end < parts.length - 1 && end - i < 3 && !ends(parts[end].text)) end++;
+  return parts
+    .slice(start, end + 1)
+    .map((p) => p.text)
+    .join(' ')
+    .replace(/^[«"(—–-]+\s*|[\s.,;:!?…»")—–-]+$/g, '');
+}
+
+/** Set phrases listed on the page (e.g. under "Фразеологизмы и устойчивые сочетания"). */
+export function russianSetPhrases(wikitext: string, max = 10): string[] {
+  const out: string[] = [];
+  let inRu = false;
+  let inSet = false;
+  for (const line of wikitext.split('\n')) {
+    const lang = /^=\s*\{\{-([\w-]+)-\}\}/.exec(line);
+    if (lang) {
+      inRu = lang[1] === 'ru';
+      inSet = false;
+      continue;
+    }
+    if (!inRu) continue;
+    if (/^=+/.test(line)) {
+      inSet = /сочетани|фразеолог/i.test(line);
+      continue;
+    }
+    if (!inSet || !/^[*#]/.test(line)) continue;
+    for (const item of line.replace(/^[*#]+\s*/, '').split(/\s*[;,]\s*(?![^\[]*\]\])/)) {
+      const t = cleanDefinition(item);
+      if (t.includes(' ') && t.length <= 40 && !out.includes(t)) out.push(t);
+      if (out.length >= max) return out;
+    }
+  }
+  return out;
+}
+
+/** What practice shows for a word: short phrases first, each with its full sentence if any. */
+export function contexts(word: string, examples: string[], phrases: string[] = []): { short: string; full?: string }[] {
+  const seen = new Set<string>();
+  const out: { short: string; full?: string }[] = [];
+  for (const full of examples) {
+    const short = contextChunk(full, word);
+    if (!seen.has(short)) {
+      seen.add(short);
+      out.push(short === full ? { short } : { short, full });
+    }
+  }
+  for (const p of phrases) if (!seen.has(p)) out.push({ short: p });
+  return out;
 }

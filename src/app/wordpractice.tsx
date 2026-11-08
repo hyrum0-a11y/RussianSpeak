@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { contexts } from '../lib/wiktionary';
 import { router } from 'expo-router';
 import { gradeWord, loadProgress, useProgress } from '../lib/storage';
 import { speakRu } from '../lib/speech';
@@ -13,6 +14,7 @@ export default function WordPractice() {
   const [p] = useProgress();
   const [queue, setQueue] = useState<string[] | null>(null);
   const [shown, setShown] = useState(false);
+  const [full, setFull] = useState(false);
 
   useEffect(() => {
     // New and Hard words first, shuffled within each group.
@@ -37,13 +39,16 @@ export default function WordPractice() {
     );
   }
 
-  // A different sentence each time you see the word.
-  const sentence = w.examples.length ? w.examples[w.seen % w.examples.length] : w.word;
-  const others = w.examples.filter((x) => x !== sentence).slice(0, 2);
+  // A short phrase with the word, a different one each time; the full sentence is a tap away.
+  const items = contexts(w.word, w.examples, w.phrases);
+  const item = items.length ? items[w.seen % items.length] : { short: w.word };
+  const sentence = full && item.full ? item.full : item.short;
+  const others = items.filter((x) => x !== item).slice(0, 3);
 
   async function grade(level: 'hard' | 'good' | 'easy') {
     await gradeWord(w!.word, level);
     setShown(false);
+    setFull(false);
     setQueue((q) => (q ? q.slice(1) : q));
   }
 
@@ -52,6 +57,11 @@ export default function WordPractice() {
       <Text style={styles.progress}>{queue.length} left</Text>
       <Card style={styles.card}>
         <Marked sentence={sentence} word={w.word} style={styles.sentence} />
+        {item.full ? (
+          <Pressable onPress={() => setFull(!full)} hitSlop={8}>
+            <Text style={styles.link}>{full ? '◂ Коротко' : 'Целое предложение ▸'}</Text>
+          </Pressable>
+        ) : null}
         <Button label="🔊 Слушать" variant="outline" onPress={() => speakRu(sentence)} style={{ flex: 0 }} />
         {shown ? (
           <>
@@ -63,7 +73,7 @@ export default function WordPractice() {
               </Text>
             ))}
             {others.map((ex, i) => (
-              <Marked key={i} sentence={`• ${ex}`} word={w.word} style={styles.other} />
+              <Marked key={i} sentence={`• ${ex.short}`} word={w.word} style={styles.other} />
             ))}
           </>
         ) : (
@@ -90,6 +100,7 @@ const styles = StyleSheet.create({
   progress: { color: colors.muted, textAlign: 'center' },
   card: { gap: 12 },
   sentence: { fontSize: 22, lineHeight: 32, color: colors.text, textAlign: 'center' },
+  link: { color: colors.primary, textAlign: 'center', fontWeight: '600' },
   hint: { color: colors.muted, textAlign: 'center' },
   divider: { height: 1, backgroundColor: colors.border },
   word: { fontSize: 24, fontWeight: '700', color: colors.primary, textAlign: 'center' },

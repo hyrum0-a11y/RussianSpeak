@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { removeWord, useProgress, type SavedWord } from '../lib/storage';
 import { speakRu } from '../lib/speech';
 import { Marked } from '../components/Marked';
+import { contexts } from '../lib/wiktionary';
 import { Button, colors } from '../components/ui';
 
 const LEVEL = {
@@ -61,12 +62,12 @@ function WordItem({ w, open, onPress }: { w: SavedWord; open: boolean; onPress: 
               {i + 1}. {m}
             </Text>
           ))}
-          {w.examples.map((ex, i) => (
-            <Pressable key={i} onPress={() => speakRu(ex)}>
-              <Marked sentence={`🔊 ${ex}`} word={w.word} style={styles.example} />
+          {contexts(w.word, w.examples, w.phrases).map((c, i) => (
+            <Pressable key={i} onPress={() => speakRu(c.short)} onLongPress={() => c.full && speakRu(c.full)}>
+              <Marked sentence={`🔊 ${c.short}`} word={w.word} style={styles.example} />
             </Pressable>
           ))}
-          {!w.examples.length ? <Text style={styles.hint}>No example sentences found for this word.</Text> : null}
+          {!w.examples.length && !w.phrases?.length ? <Text style={styles.hint}>No example sentences found for this word.</Text> : null}
         </>
       ) : null}
     </Pressable>

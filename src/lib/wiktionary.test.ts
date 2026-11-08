@@ -54,3 +54,22 @@ test('markWord highlights forms of the word', () => {
   const parts = markWord('Мы идём домой, где наш дом.', 'дом');
   assert.deepEqual(parts.filter((p) => p.hit).map((p) => p.text), ['домой,', 'дом.']);
 });
+
+import { contextChunk, russianSetPhrases } from './wiktionary.ts';
+
+test('contextChunk cuts a short phrase around the word', () => {
+  assert.equal(contextChunk('Он сказал: иди ко мне скорее, я жду.', 'идти'), 'иди ко мне скорее');
+  assert.equal(contextChunk('Мы долго шли домой по тёмной улице.', 'дом'), 'долго шли домой по тёмной улице');
+});
+
+test('russianSetPhrases reads set-phrase lists', () => {
+  const page = '= {{-ru-}} =\n=== Фразеологизмы и устойчивые сочетания ===\n* [[дом отдыха]], [[из дома]]\n* [[дом]]\n=== Перевод ===\n* x y\n';
+  assert.deepEqual(russianSetPhrases(page), ['дом отдыха', 'из дома']);
+});
+
+import { contexts } from './wiktionary.ts';
+
+test('contexts puts short phrases first and keeps the full sentence', () => {
+  const c = contexts('идти', ['Он сказал: иди ко мне скорее, я жду.'], ['идти в ногу']);
+  assert.deepEqual(c, [{ short: 'иди ко мне скорее', full: 'Он сказал: иди ко мне скорее, я жду.' }, { short: 'идти в ногу' }]);
+});
