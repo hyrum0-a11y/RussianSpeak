@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { aiPrompt } from '../lib/askAi';
-import { Button, colors, Row } from './ui';
+import { Button, colors, Row, T } from './ui';
 
 /**
  * "Спроси́ть ИИ": writes a question about the phrase and hands it to whatever
@@ -16,7 +16,7 @@ export function AskAI({ text }: { text: string }) {
   if (!open) {
     return (
       <Pressable onPress={() => setOpen(true)} hitSlop={8} accessibilityRole="button">
-        <Text style={styles.link}>🤖 Спроси́ть ИИ</Text>
+        <T style={styles.link} en="🤖 Ask AI">🤖 Спроси́ть ИИ</T>
       </Pressable>
     );
   }
@@ -43,7 +43,7 @@ export function AskAI({ text }: { text: string }) {
         />
       </Row>
       <Pressable onPress={() => setOpen(false)} hitSlop={8}>
-        <Text style={styles.close}>Закры́ть</Text>
+        <T style={styles.close} en="Close">Закры́ть</T>
       </Pressable>
     </View>
   );

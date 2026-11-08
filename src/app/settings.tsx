@@ -40,14 +40,14 @@ export default function Settings() {
       <Card style={styles.card}>
         <T style={styles.h} en="Russian voice">Ру́сский го́лос</T>
         {voices === null ? null : voices.length === 0 ? (
-          <Text style={styles.body}>
+          <T style={styles.body} en='No Russian voice is installed, so your phone reads Cyrillic with the wrong voice. Open Android Settings → search "Text-to-speech" → Preferred engine (Speech Services by Google) → Install voice data → Русский. Then come back here.'>
             Ру́сский го́лос не устано́влен, поэ́тому телефо́н чита́ет кири́ллицу не тем го́лосом. Откро́йте настро́йки
             Android → найди́те «Text-to-speech» → Preferred engine (Speech Services by Google) → Install voice
             data → Ру́сский. Пото́м верни́тесь сюда́.
-          </Text>
+          </T>
         ) : (
           <>
-            <Text style={styles.body}>Нажми́те на го́лос, что́бы его́ послу́шать. Го́лоса «on device» рабо́тают без интерне́та и надёжнее всего́.</Text>
+            <T style={styles.body} en='Tap a voice to hear it. "on device" voices work offline and are most reliable.'>Нажми́те на го́лос, что́бы его́ послу́шать. Го́лоса «on device» рабо́тают без интерне́та и надёжнее всего́.</T>
             {voices.map((v) => {
               const active = pickRussianVoice(voices, s.voiceId)?.identifier === v.identifier;
               const label = /local/i.test(v.identifier) ? 'on device' : /network/i.test(v.identifier) ? 'needs internet' : '';
@@ -116,7 +116,7 @@ export default function Settings() {
 
       <Card style={styles.card}>
         <T style={styles.h} en="Progress">Прогре́сс</T>
-        <Text style={styles.body}>Прогре́сс храни́тся то́лько на э́том телефо́не. Сбо́рка: {BUILD_NUMBER || 'dev'}.</Text>
+        <T style={styles.body} en={`Your progress is saved only on this phone. App build: ${BUILD_NUMBER || 'dev'}.`}>Прогре́сс храни́тся то́лько на э́том телефо́не. Сбо́рка: {BUILD_NUMBER || 'dev'}.</T>
         <Button
           label="Сбро́сить весь прогре́сс" en="Reset all progress"
           color={colors.again}

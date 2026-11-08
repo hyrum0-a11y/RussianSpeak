@@ -10,7 +10,7 @@ import { statusOf } from '../lib/status';
 import { newLeftToday, updateProgress, useProgress, type Progress } from '../lib/storage';
 import { checkForUpdate, installUpdate, type Update } from '../lib/update';
 import { ProgressBar } from '../components/ProgressBar';
-import { Button, colors, hint, T } from '../components/ui';
+import { Button, colors, hint, LangToggle, T, useLang } from '../components/ui';
 
 const LEVELS: { grade: Level; color: string }[] = [
   { grade: 'hard', color: colors.hard },
@@ -19,6 +19,7 @@ const LEVELS: { grade: Level; color: string }[] = [
 ];
 
 export default function Home() {
+  const tr = useLang();
   const [p] = useProgress();
   const [voiceOk, setVoiceOk] = useState(true);
   const [update, setUpdate] = useState<Update | null>(null);
@@ -81,8 +82,8 @@ export default function Home() {
           tone="good"
           title="Всё по-ру́сски 🇷🇺"
           titleEn="Everything is in Russian"
-          body="Нажми́те и уде́рживайте любу́ю кно́пку и́ли на́дпись, что́бы уви́деть англи́йский."
-          bodyEn="Press and hold any button or label to see the English."
+          body="Нажми́те и уде́рживайте любу́ю кно́пку и́ли на́дпись, что́бы уви́деть англи́йский. Кно́пка EN наверху́ перево́дит весь экра́н."
+          bodyEn="Press and hold any button or label to see the English. The EN switch at the top translates the whole screen."
         >
           <Button
             label="Поня́тно"
@@ -95,8 +96,11 @@ export default function Home() {
 
       {/* Hero */}
       <View style={styles.hero}>
-        <Text style={styles.heroKicker}>RUSSIANSPEAK</Text>
-        <Text style={styles.heroTitle}>Говори́ по-ру́сски</Text>
+        <View style={styles.heroTop}>
+          <Text style={styles.heroKicker}>RUSSIANSPEAK</Text>
+          <LangToggle light />
+        </View>
+        <T style={styles.heroTitle} en="Speak Russian">Говори́ по-ру́сски</T>
         <View style={styles.heroProgress}>
           <ProgressBar value={all.length ? learned / all.length : 0} color="#F2C14E" height={8} />
           <T style={styles.heroMeta} en={`${learned} of ${all.length} phrases learned`}>
@@ -115,7 +119,7 @@ export default function Home() {
                 onLongPress={() => hint(LEVEL_NAMES[l.grade].en)}
                 style={({ pressed }) => [styles.level, { backgroundColor: l.color }, (pressed || !n) && { opacity: n ? 0.8 : 0.4 }]}
               >
-                <Text style={styles.levelLabel}>{LEVEL_NAMES[l.grade].ru}</Text>
+                <Text style={styles.levelLabel}>{tr(LEVEL_NAMES[l.grade].ru, LEVEL_NAMES[l.grade].en.split(':')[0])}</Text>
                 <Text style={styles.levelCount}>{n}</Text>
               </Pressable>
             );
@@ -145,10 +149,10 @@ export default function Home() {
                 ) : null}
               </View>
               <Text style={styles.tileTitle} numberOfLines={2}>
-                {d.title}
+                {tr(d.title, d.en)}
               </Text>
               <Text style={styles.tileMeta}>
-                {s.total ? `вы́учено ${s.learned}/${s.total}` : 'Доба́вьте свои́'}
+                {s.total ? tr(`вы́учено ${s.learned}/${s.total}`, `${s.learned}/${s.total} learned`) : tr('Доба́вьте свои́', 'Add your own')}
               </Text>
               <ProgressBar value={s.total ? s.learned / s.total : 0} height={4} />
             </Pressable>
@@ -159,23 +163,23 @@ export default function Home() {
       {/* Practice */}
       <T style={styles.sectionTitle} en="Practice">Пра́ктика</T>
       <View style={styles.modes}>
-        <ModeTile icon="🗣" label="Говори́ть" sub={`${promptsDue} вопр.`} en={`Speak: answer questions out loud (${promptsDue} prompts)`} onPress={() => router.push('/respond')} />
-        <ModeTile icon="🎧" label="Дикта́нт" sub="Слу́шать и писа́ть" en="Dictation: hear & type" onPress={() => router.push('/dictation')} />
-        <ModeTile icon="✏️" label="Про́пуск" sub="Оконча́ния" en="Fill in the blank: endings" onPress={() => router.push('/cloze')} />
+        <ModeTile icon="🗣" label="Говори́ть" sub={`${promptsDue} вопр.`} en="Speak" subEn={`answer out loud (${promptsDue})`} onPress={() => router.push('/respond')} />
+        <ModeTile icon="🎧" label="Дикта́нт" sub="Слу́шать и писа́ть" en="Dictation" subEn="hear & type" onPress={() => router.push('/dictation')} />
+        <ModeTile icon="✏️" label="Про́пуск" sub="Оконча́ния" en="Fill in the blank" subEn="endings" onPress={() => router.push('/cloze')} />
       </View>
       <Pressable onPress={() => router.push('/words')} onLongPress={() => hint('My words: new words, learned inside real sentences')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
         <Text style={styles.modeIcon}>📝</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.modeLabel}>Мои́ сло́ва · {p.words.length}</Text>
-          <Text style={styles.modeSub}>Но́вые сло́ва в настоя́щих фра́зах</Text>
+          <Text style={styles.modeLabel}>{tr('Мои́ сло́ва', 'My words')} · {p.words.length}</Text>
+          <Text style={styles.modeSub}>{tr('Но́вые сло́ва в настоя́щих фра́зах', 'New words, learned inside real sentences')}</Text>
         </View>
         <Text style={styles.chev}>›</Text>
       </Pressable>
       <Pressable onPress={() => router.push('/songs')} onLongPress={() => hint('Sing along: YouTube or your own files, lyrics light up')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
         <Text style={styles.modeIcon}>🎵</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.modeLabel}>Поём вме́сте</Text>
-          <Text style={styles.modeSub}>YouTube и́ли свои́ фа́йлы, текст подсве́чивается</Text>
+          <Text style={styles.modeLabel}>{tr('Поём вме́сте', 'Sing along')}</Text>
+          <Text style={styles.modeSub}>{tr('YouTube и́ли свои́ фа́йлы, текст подсве́чивается', 'YouTube or your own files, lyrics light up')}</Text>
         </View>
         <Text style={styles.chev}>›</Text>
       </Pressable>
@@ -200,12 +204,13 @@ function deckStat(deck: (typeof DECKS)[number]['id'], p: Progress, now: number) 
   };
 }
 
-function ModeTile({ icon, label, sub, en, onPress }: { icon: string; label: string; sub: string; en: string; onPress: () => void }) {
+function ModeTile({ icon, label, sub, en, subEn, onPress }: { icon: string; label: string; sub: string; en: string; subEn: string; onPress: () => void }) {
+  const tr = useLang();
   return (
-    <Pressable onPress={onPress} onLongPress={() => hint(en)} style={({ pressed }) => [styles.mode, pressed && styles.pressed]}>
+    <Pressable onPress={onPress} onLongPress={() => hint(`${en}: ${subEn}`)} style={({ pressed }) => [styles.mode, pressed && styles.pressed]}>
       <Text style={styles.modeIcon}>{icon}</Text>
-      <Text style={styles.modeLabel}>{label}</Text>
-      <Text style={styles.modeSub}>{sub}</Text>
+      <Text style={styles.modeLabel}>{tr(label, en)}</Text>
+      <Text style={styles.modeSub}>{tr(sub, subEn)}</Text>
     </Pressable>
   );
 }
@@ -213,7 +218,7 @@ function ModeTile({ icon, label, sub, en, onPress }: { icon: string; label: stri
 function FooterLink({ label, en, onPress }: { label: string; en: string; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} onLongPress={() => hint(en)} hitSlop={8} style={({ pressed }) => [styles.footerLink, pressed && styles.pressed]}>
-      <Text style={styles.footerText}>{label}</Text>
+      <Text style={styles.footerText}>{useLang()(label, `${label.split(' ')[0]} ${en}`)}</Text>
     </Pressable>
   );
 }
@@ -252,6 +257,7 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
 
   hero: { backgroundColor: colors.primary, borderRadius: 20, padding: 22, gap: 14 },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroKicker: { color: '#C9D6EA', fontSize: 12, fontWeight: '700', letterSpacing: 2 },
   heroTitle: { color: '#FFFFFF', fontSize: 32, fontWeight: '800', marginTop: -6 },
   heroProgress: { gap: 6 },

@@ -4,9 +4,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { catEn, catRu, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
 import { buildQueue } from '../lib/srs';
-import { STATUS_LABEL, statusOf, type Status } from '../lib/status';
+import { STATUS_EN, STATUS_LABEL, statusOf, type Status } from '../lib/status';
 import { newLeftToday, useProgress } from '../lib/storage';
-import { Button, colors, hint, Row, T } from '../components/ui';
+import { Button, colors, hint, Row, T, useLang } from '../components/ui';
 import { ProgressBar } from '../components/ProgressBar';
 
 const STATUS_ORDER: Status[] = ['due', 'learning', 'new', 'learned'];
@@ -18,6 +18,7 @@ const STATUS_COLOR: Record<Status, string> = {
 };
 
 export default function DeckScreen() {
+  const tr = useLang();
   const params = useLocalSearchParams<{ deck?: string }>();
   const info = DECKS.find((d) => d.id === params.deck) ?? DECKS[0];
   const deck: Deck = info.id;
@@ -62,11 +63,11 @@ export default function DeckScreen() {
   const header = (
     <View style={styles.header}>
       <Text style={styles.icon}>{info.icon}</Text>
-      <Text style={styles.blurb}>{info.blurb}</Text>
+      <T style={styles.blurb} en={info.en}>{info.blurb}</T>
       <ProgressBar value={phrases.length ? learned / phrases.length : 0} />
-      <Text style={styles.meta}>
-        {learned} learned · {seen - learned} in progress · {phrases.length - seen} new
-      </Text>
+      <T style={styles.meta} en={`${learned} learned · ${seen - learned} in progress · ${phrases.length - seen} new`}>
+        вы́учено {learned} · в проце́ссе {seen - learned} · но́вых {phrases.length - seen}
+      </T>
       <Row>
         <Button
           label={queue.length ? `Учи́ть (${queue.length})` : 'На сего́дня всё ✓'}
@@ -86,7 +87,7 @@ export default function DeckScreen() {
           {(['type', 'status'] as const).map((g) => (
             <Pressable key={g} onPress={() => setGroupBy(g)} onLongPress={() => hint(g === 'type' ? (byDecade ? 'By decade' : 'By topic') : 'By progress')} style={[styles.chip, groupBy === g && styles.chipOn]}>
               <Text style={[styles.chipText, groupBy === g && styles.chipTextOn]}>
-                {g === 'type' ? (byDecade ? 'По десятиле́тиям' : 'По те́мам') : 'По прогре́ссу'}
+                {g === 'type' ? (byDecade ? tr('По десятиле́тиям', 'By decade') : tr('По те́мам', 'By topic')) : tr('По прогре́ссу', 'By progress')}
               </Text>
             </Pressable>
           ))}
@@ -109,9 +110,9 @@ export default function DeckScreen() {
           const sec = section as { title: string; data: Phrase[]; count?: number; collapsible?: boolean };
           if (!sec.collapsible) {
             return (
-              <T style={styles.section} en={catEn(sec.title)}>
-                {catRu(sec.title)} <Text style={styles.count}>{sec.data.length}</Text>
-              </T>
+              <Text style={styles.section} onLongPress={() => hint(catEn(sec.title))}>
+                {tr(catRu(sec.title), catEn(sec.title))} <Text style={styles.count}>{sec.data.length}</Text>
+              </Text>
             );
           }
           const isOpen = expanded.has(sec.title);
@@ -130,7 +131,7 @@ export default function DeckScreen() {
               accessibilityRole="button"
             >
               <Text style={styles.foldText}>
-                {isOpen ? '▾' : '▸'} {catRu(sec.title)}
+                {isOpen ? '▾' : '▸'} {tr(catRu(sec.title), catEn(sec.title))}
               </Text>
               <Text style={styles.count}>{sec.count}</Text>
             </Pressable>
@@ -157,7 +158,7 @@ function Item({ item, status, onPress }: { item: Phrase; status: Status; onPress
         <Text style={styles.ru}>{item.ru}</Text>
         {item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
       </View>
-      <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{STATUS_LABEL[status]}</Text>
+      <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{useLang()(STATUS_LABEL[status], STATUS_EN[status])}</Text>
     </Pressable>
   );
 }
@@ -201,6 +202,7 @@ const styles = StyleSheet.create({
   section: { fontSize: 17, fontWeight: '700', color: colors.text, marginTop: 18, marginBottom: 8 },
   count: { color: colors.muted, fontWeight: '400', fontSize: 14 },
   item: {
+    marginLeft: 18, // indented under its group heading
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,

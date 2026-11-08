@@ -9,7 +9,7 @@ import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
 import { SpeechCheck } from '../components/SpeechCheck';
 import { AskAI } from '../components/AskAI';
-import { Button, Card, colors, Row, T } from '../components/ui';
+import { Button, Card, colors, Row, T, useLang } from '../components/ui';
 
 
 const GRADES: { grade: Grade; label: string; en: string; color: string }[] = [
@@ -19,6 +19,7 @@ const GRADES: { grade: Grade; label: string; en: string; color: string }[] = [
 ];
 
 export default function Review() {
+  const tr = useLang();
   const params = useLocalSearchParams<{ deck?: string; mode?: string; id?: string; level?: string }>();
   // "level" = practice cards by your last grade (e.g. "hard" or "hard,good").
   const levels = params.level ? (params.level.split(',') as Grade[]) : null;
@@ -104,12 +105,12 @@ export default function Review() {
     return (
       <View style={styles.center}>
         {title}
-        <Text style={styles.doneTitle}>Отли́чно! 🎉</Text>
-        <Text style={styles.doneBody}>
+        <T style={styles.doneTitle} en="Great! 🎉">Отли́чно! 🎉</T>
+        <T style={styles.doneBody} en={doneCount ? `${doneCount} cards done.${practice ? '' : ' Come back later.'}` : 'Nothing here yet.'}>
           {doneCount
             ? `Про́йдено ка́рточек: ${doneCount}.${practice ? '' : ' Возвраща́йтесь по́зже.'}`
             : 'Здесь пока́ пу́сто.'}
-        </Text>
+        </T>
         {history.length > 0 && (
           <Button label="↩ К после́дней ка́рточке" en="Back to last card" variant="outline" onPress={goBack} style={{ flex: 0, alignSelf: 'stretch' }} />
         )}
@@ -169,7 +170,7 @@ export default function Review() {
     <ScrollView contentContainerStyle={styles.wrap}>
       {title}
       <Text style={styles.progress}>
-        {single ? '' : `оста́лось ${queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {catRu(current.cat)}
+        {single ? '' : `оста́лось ${queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {tr(catRu(current.cat), current.cat)}
         {practice ? ' · пра́ктика' : ''}
       </Text>
 

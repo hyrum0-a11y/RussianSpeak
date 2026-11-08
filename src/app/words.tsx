@@ -23,9 +23,9 @@ export default function Words() {
 
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
-      <Text style={styles.intro}>
+      <T style={styles.intro} en="Learn each word inside real sentences. Save words from the 📖 Dictionary with “＋ To my words”.">
         Учи́те ка́ждое сло́во в живы́х фра́зах. Сохраня́йте сло́ва из 📖 Словаря́ кно́пкой «＋ В мои́ сло́ва».
-      </Text>
+      </T>
       <Button
         label={words.length ? `Пра́ктика · ${words.length}` : 'Откры́ть Слова́рь'}
         onPress={() => (words.length ? router.push('/wordpractice') : router.push('/dictionary'))}
