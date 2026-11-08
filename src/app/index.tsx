@@ -16,6 +16,7 @@ export default function Home() {
   const [p] = useProgress();
   const [voiceOk, setVoiceOk] = useState(true);
   const [update, setUpdate] = useState<Update | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -35,8 +36,18 @@ export default function Home() {
   return (
     <ScrollView contentContainerStyle={[styles.wrap, { paddingTop: insets.top + 12 }]}>
       {update && (
-        <Banner tone="good" title={`Update available · build ${update.build}`} body="Download it, then open the file to install. Your progress is kept.">
-          <Button label="⬇ Download update" color={colors.good} onPress={() => installUpdate(update)} style={{ flex: 0 }} />
+        <Banner tone="good" title={`Update available · build ${update.build}`} body="Downloads inside the app, then Android asks to install. The first time, allow RussianSpeak to install apps. Your progress is kept.">
+          <Button
+            label={progress === null ? '⬇ Download & install' : `Downloading… ${Math.round(progress * 100)}%`}
+            color={colors.good}
+            disabled={progress !== null}
+            onPress={async () => {
+              setProgress(0);
+              await installUpdate(update, setProgress);
+              setProgress(null);
+            }}
+            style={{ flex: 0 }}
+          />
         </Banner>
       )}
       {!voiceOk && (
