@@ -1,13 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { russianMeanings, stems } from './wiktionary';
+import { russianExamples, russianMeanings, russianSetPhrases, stems } from './wiktionary';
 
 export type Entry =
-  | { found: true; title: string; meanings: string[] }
+  | { found: true; title: string; meanings: string[]; examples: string[]; phrases: string[] }
   | { found: false; suggestions: string[] };
 
 const API = 'https://ru.wiktionary.org/w/api.php';
 const HEADERS = { 'Api-User-Agent': 'RussianSpeak/1.0 (https://github.com/hyrum0-a11y/RussianSpeak)' };
-const CACHE = 'russianspeak:dict:';
+const CACHE = 'russianspeak:dict3:';
 
 /** Page title for a word: lowercase, no stress marks (ё kept). */
 export function titleFor(word: string): string {
@@ -25,7 +25,7 @@ async function getJson(params: Record<string, string>) {
   return res.json();
 }
 
-async function page(title: string): Promise<string[] | null> {
+async function page(title: string): Promise<{ meanings: string[]; examples: string[]; phrases: string[] } | null> {
   const data = await getJson({
     action: 'query',
     prop: 'revisions',
@@ -38,7 +38,7 @@ async function page(title: string): Promise<string[] | null> {
   const text: string | undefined = p?.revisions?.[0]?.slots?.main?.content;
   if (!text) return null;
   const meanings = russianMeanings(text);
-  return meanings.length ? meanings : null;
+  return meanings.length ? { meanings, examples: russianExamples(text), phrases: russianSetPhrases(text) } : null;
 }
 
 async function suggest(q: string): Promise<string[]> {
@@ -58,9 +58,9 @@ export async function lookUp(word: string): Promise<Entry> {
   if (cached) return JSON.parse(cached) as Entry;
 
   let entry: Entry;
-  const meanings = await page(title);
-  if (meanings) {
-    entry = { found: true, title, meanings };
+  const found = await page(title);
+  if (found) {
+    entry = { found: true, title, ...found };
   } else {
     let suggestions: string[] = [];
     for (const s of [title, ...stems(title.replace(/ё/g, 'е'))]) {

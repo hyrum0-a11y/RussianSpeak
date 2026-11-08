@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
 import type { CustomPhrase, Deck } from '../data/phrases';
-import type { CardState } from './srs';
+import type { CardState, Level } from './srs';
 
 // Everything is stored on the device only.
 const KEY = 'russianspeak:v1';
@@ -14,12 +14,25 @@ export type Settings = {
   showPromptText: boolean; // show the Cyrillic question text in prompt drills
 };
 
+/** A word saved from the dictionary, with example sentences to learn it in context. */
+export type SavedWord = {
+  word: string; // dictionary form, e.g. "дом"
+  meanings: string[]; // Russian definitions
+  examples: string[]; // sentences that use it
+  phrases?: string[]; // set phrases with the word, e.g. "иди ко мне"
+  added: number;
+  level?: Level; // your last Hard / Good / Easy
+  seen: number; // practice count, used to rotate examples
+};
+
 type DayCount = { date: string; count: number };
 
 export type Progress = {
   cards: Record<string, CardState>;
   prompts: Record<string, CardState>;
   custom: CustomPhrase[];
+  /** Words you're learning in context (Мои слова). */
+  words: SavedWord[];
   /** Unused since the Difficult page replaced the starred list; kept so old saves load. */
   starred: string[];
   newIntroduced: Partial<Record<Deck, DayCount>>;
@@ -32,6 +45,7 @@ export const DEFAULT_PROGRESS: Progress = {
   prompts: {},
   custom: [],
   starred: [],
+  words: [],
   newIntroduced: {},
   streak: { lastDay: '', days: 0 },
   settings: { newPerDay: 10, speechRate: 0.9, front: 'ru', showPromptText: true },
@@ -113,8 +127,26 @@ export async function removeCustomPhrase(ru: string) {
   });
 }
 
+export async function saveWord(w: Omit<SavedWord, 'added' | 'seen'>) {
+  await updateProgress((p) => ({
+    ...p,
+    words: [...p.words.filter((x) => x.word !== w.word), { ...w, added: Date.now(), seen: 0 }],
+  }));
+}
+
+export async function removeWord(word: string) {
+  await updateProgress((p) => ({ ...p, words: p.words.filter((x) => x.word !== word) }));
+}
+
+export async function gradeWord(word: string, level: Level) {
+  await updateProgress((p) => ({
+    ...p,
+    words: p.words.map((x) => (x.word === word ? { ...x, level, seen: x.seen + 1 } : x)),
+  }));
+}
+
 export async function resetProgress(): Promise<void> {
-  await updateProgress((p) => ({ ...DEFAULT_PROGRESS, settings: p.settings, custom: p.custom, starred: p.starred }));
+  await updateProgress((p) => ({ ...DEFAULT_PROGRESS, settings: p.settings, custom: p.custom, starred: p.starred, words: p.words }));
 }
 
 export function useProgress(): [Progress | null, typeof updateProgress] {

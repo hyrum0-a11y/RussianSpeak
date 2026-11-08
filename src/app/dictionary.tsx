@@ -3,8 +3,8 @@ import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, Text, Text
 import { allPhrases } from '../data/phrases';
 import { lookUp, titleFor, wiktionaryUrl, type Entry } from '../lib/dictionary';
 import { speakRu } from '../lib/speech';
-import { useProgress } from '../lib/storage';
-import { dictKey, wordList } from '../lib/wiktionary';
+import { saveWord, useProgress } from '../lib/storage';
+import { dictKey, markWord, wordList } from '../lib/wiktionary';
 import { colors } from '../components/ui';
 import { AskAI } from '../components/AskAI';
 
@@ -126,6 +126,7 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
           {i + 1}. {m}
         </Text>
       ))}
+      <SaveWord title={entry.title} meanings={entry.meanings} examples={entry.examples} phrases={entry.phrases} />
       <AskAI text={word} />
       <Pressable onPress={() => Linking.openURL(wiktionaryUrl(entry.title))} hitSlop={6}>
         <Text style={styles.source}>Викисловарь ↗</Text>
@@ -134,7 +135,30 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
   );
 }
 
+/** "＋ В мои слова": keep the word with example sentences from Викисловарь and from your cards. */
+function SaveWord({ title, meanings, examples, phrases }: { title: string; meanings: string[]; examples: string[]; phrases: string[] }) {
+  const [p] = useProgress();
+  if (!p) return null;
+  const saved = p.words.some((w) => w.word === title);
+  if (saved) return <Text style={styles.saved}>✓ В моих словах</Text>;
+  const fromCards = allPhrases(p.custom)
+    .map((x) => x.ru.replace(/ \/ /g, ' '))
+    .filter((ru) => markWord(ru, title).some((part) => part.hit));
+  return (
+    <Pressable
+      onPress={() => saveWord({ word: title, meanings, phrases, examples: [...new Set([...fromCards, ...examples])].slice(0, 15) })}
+      style={styles.saveBtn}
+      accessibilityRole="button"
+    >
+      <Text style={styles.saveText}>＋ В мои слова</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  saved: { color: colors.good, fontWeight: '600', marginTop: 4 },
+  saveBtn: { alignSelf: 'flex-start', marginTop: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: colors.primary },
+  saveText: { color: colors.primaryText, fontWeight: '700' },
   searchWrap: { padding: 16, paddingBottom: 8, gap: 6, backgroundColor: colors.bg },
   search: {
     borderWidth: 1,

@@ -34,6 +34,8 @@ export default function RootLayout() {
         <Stack.Screen name="songs" options={{ title: 'Songs' }} />
         <Stack.Screen name="dictionary" options={{ title: 'Словарь' }} />
         <Stack.Screen name="level" options={{ title: 'Cards' }} />
+        <Stack.Screen name="words" options={{ title: 'Мои слова' }} />
+        <Stack.Screen name="wordpractice" options={{ title: 'Слова в контексте' }} />
         <Stack.Screen name="song" options={{ title: 'Song' }} />
       </Stack>
     </>
