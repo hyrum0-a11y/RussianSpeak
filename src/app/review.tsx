@@ -33,7 +33,7 @@ export default function Review() {
   const deckTitle = levels
       ? levels.map((l) => GRADES.find((g) => g.grade === l)?.label).join(' + ')
       : deck === 'all'
-        ? 'На сегодня'
+        ? 'На сего́дня'
         : DECKS.find((d) => d.id === deck)!.title;
 
   const [p] = useProgress();
@@ -75,7 +75,7 @@ export default function Review() {
   const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue, byId]);
 
   if (!p || !queue) return null;
-  const title = <Stack.Screen options={{ title: practice && !levels ? `Практика: ${deckTitle}` : deckTitle }} />;
+  const title = <Stack.Screen options={{ title: practice && !levels ? `Пра́ктика: ${deckTitle}` : deckTitle }} />;
 
   /** Step back to the previous card and undo its grade so you can redo it. */
   async function goBack() {
@@ -107,22 +107,22 @@ export default function Review() {
         <Text style={styles.doneTitle}>Отли́чно! 🎉</Text>
         <Text style={styles.doneBody}>
           {doneCount
-            ? `Пройдено карточек: ${doneCount}.${practice ? '' : ' Возвращайтесь позже.'}`
-            : 'Здесь пока пусто.'}
+            ? `Про́йдено ка́рточек: ${doneCount}.${practice ? '' : ' Возвраща́йтесь по́зже.'}`
+            : 'Здесь пока́ пу́сто.'}
         </Text>
         {history.length > 0 && (
-          <Button label="↩ К последней карточке" en="Back to last card" variant="outline" onPress={goBack} style={{ flex: 0, alignSelf: 'stretch' }} />
+          <Button label="↩ К после́дней ка́рточке" en="Back to last card" variant="outline" onPress={goBack} style={{ flex: 0, alignSelf: 'stretch' }} />
         )}
         {!practice && (
           <Button
-            label="Повторить изученное"
+            label="Повтори́ть изу́ченное"
             en="Practice learned cards"
             variant="outline"
             onPress={() => router.replace({ pathname: '/review', params: { deck, mode: 'practice' } })}
             style={{ flex: 0, alignSelf: 'stretch' }}
           />
         )}
-        <Button label="Назад" en="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <Button label="Наза́д" en="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -169,8 +169,8 @@ export default function Review() {
     <ScrollView contentContainerStyle={styles.wrap}>
       {title}
       <Text style={styles.progress}>
-        {single ? '' : `осталось ${queue.length}`}{isNew ? ' · НОВОЕ' : ''} · {catRu(current.cat)}
-        {practice ? ' · практика' : ''}
+        {single ? '' : `оста́лось ${queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {catRu(current.cat)}
+        {practice ? ' · пра́ктика' : ''}
       </Text>
 
       <Card style={styles.card}>
@@ -186,7 +186,7 @@ export default function Review() {
             {tip}
           </>
         ) : (
-          <T style={styles.hint} en="Say it in Russian, out loud.">Скажите это по-русски вслух.</T>
+          <T style={styles.hint} en="Say it in Russian, out loud.">Скажи́те э́то по-ру́сски вслух.</T>
         )}
       </Card>
 
@@ -195,7 +195,7 @@ export default function Review() {
           <SpeakControls text={current.ru} rate={p.settings.speechRate} autoPlay={!ruFirst} />
           <SpeechCheck text={current.ru} />
           <AskAI text={current.ru} />
-          <T style={styles.question} en="How well do you know it?">Как хорошо вы это знаете?</T>
+          <T style={styles.question} en="How well do you know it?">Как хорошо́ вы э́то зна́ете?</T>
           <Row>
             {GRADES.map(({ grade: g, label, en, color }) => (
               <Button
@@ -210,11 +210,11 @@ export default function Review() {
           </Row>
         </>
       ) : (
-        <Button label="Показать по-русски" en="Show Russian" onPress={() => setRevealed(true)} />
+        <Button label="Показа́ть по-ру́сски" en="Show Russian" onPress={() => setRevealed(true)} />
       )}
       {history.length > 0 && (
         <Pressable onPress={goBack} hitSlop={8} accessibilityRole="button">
-          <T style={styles.back} en="Previous card">↩ Предыдущая карточка</T>
+          <T style={styles.back} en="Previous card">↩ Преды́дущая ка́рточка</T>
         </Pressable>
       )}
     </ScrollView>

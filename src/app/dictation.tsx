@@ -39,8 +39,8 @@ export default function Dictation() {
     return (
       <View style={styles.center}>
         <Text style={styles.doneTitle}>Гото́во! ✍️</Text>
-        <Text style={styles.doneBody}>В среднем {Math.round((total / Math.max(1, items.length)) * 100)}% слов верно.</Text>
-        <Button label="Назад" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <Text style={styles.doneBody}>В сре́днем {Math.round((total / Math.max(1, items.length)) * 100)}% слов ве́рно.</Text>
+        <Button label="Наза́д" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -65,10 +65,10 @@ export default function Dictation() {
         {i + 1} / {items.length}
       </Text>
       <Card style={styles.card}>
-        <T style={styles.label} en="Listen and type what you hear">Слушайте и пишите, что слышите</T>
+        <T style={styles.label} en="Listen and type what you hear">Слу́шайте и пиши́те, что слы́шите</T>
         <Row>
-          <Button label="🔊 Слушать" en="🔊 Play" onPress={() => speakRu(current.ru, rate)} />
-          <Button label="🐢 Медленно" en="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
+          <Button label="🔊 Слу́шать" en="🔊 Play" onPress={() => speakRu(current.ru, rate)} />
+          <Button label="🐢 Ме́дленно" en="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
         </Row>
         <TextInput
           style={styles.input}
@@ -81,20 +81,20 @@ export default function Dictation() {
           multiline
           onSubmitEditing={check}
         />
-        <T style={styles.help} en="Switch your keyboard to Russian (🌐 key). Stress marks and ё are optional.">Включите русскую клавиатуру (🌐). Ударения и ё можно не ставить.</T>
+        <T style={styles.help} en="Switch your keyboard to Russian (🌐 key). Stress marks and ё are optional.">Включи́те ру́сскую клавиату́ру (🌐). Ударе́ния и ё мо́жно не ста́вить.</T>
       </Card>
 
       {results ? (
         <Card style={styles.card}>
           <WordDiff results={results} />
-          <Text style={styles.score}>{Math.round(score(results) * 100)}% слов верно</Text>
+          <Text style={styles.score}>{Math.round(score(results) * 100)}% слов ве́рно</Text>
           <Peek en={current.en} open={current.idiom} />
-          <Button label="Дальше →" en="Next →" onPress={next} style={{ flex: 0 }} />
+          <Button label="Да́льше →" en="Next →" onPress={next} style={{ flex: 0 }} />
         </Card>
       ) : (
         <Row>
-          <Button label="Пропустить" en="Skip" variant="outline" onPress={() => setResults(compareWords(current.ru, ''))} />
-          <Button label="Проверить" en="Check" disabled={!typed.trim()} onPress={check} />
+          <Button label="Пропусти́ть" en="Skip" variant="outline" onPress={() => setResults(compareWords(current.ru, ''))} />
+          <Button label="Прове́рить" en="Check" disabled={!typed.trim()} onPress={check} />
         </Row>
       )}
     </ScrollView>

@@ -43,7 +43,7 @@ export default function Cloze() {
         <Text style={styles.doneBody}>
           {right} of {items.length} right.
         </Text>
-        <Button label="Назад" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <Button label="Наза́д" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -85,25 +85,25 @@ export default function Cloze() {
             style={styles.input}
             value={typed}
             onChangeText={setTyped}
-            placeholder="Пропущенное слово"
+            placeholder="Пропу́щенное сло́во"
             autoCorrect={false}
             autoCapitalize="none"
             autoFocus
             onSubmitEditing={check}
           />
           <Row>
-            <Button label="Пропустить" en="Skip" variant="outline" onPress={() => { setChecked(false); speakRu(current.phrase.ru, rate); }} />
-            <Button label="Проверить" en="Check" disabled={!typed.trim()} onPress={check} />
+            <Button label="Пропусти́ть" en="Skip" variant="outline" onPress={() => { setChecked(false); speakRu(current.phrase.ru, rate); }} />
+            <Button label="Прове́рить" en="Check" disabled={!typed.trim()} onPress={check} />
           </Row>
         </>
       ) : (
         <>
           <Text style={[styles.verdict, { color: checked ? colors.good : colors.again }]}>
-            {checked ? 'Пра́вильно! ✓' : `Вы написали: ${typed || '—'}`}
+            {checked ? 'Пра́вильно! ✓' : `Вы написа́ли: ${typed || '—'}`}
           </Text>
           <Row>
             <Button label="🔊 Ещё раз" en="🔊 Replay" variant="outline" onPress={() => speakRu(current.phrase.ru, rate)} />
-            <Button label="Дальше →" en="Next →" onPress={next} />
+            <Button label="Да́льше →" en="Next →" onPress={next} />
           </Row>
         </>
       )}

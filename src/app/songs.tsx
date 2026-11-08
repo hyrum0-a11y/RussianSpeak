@@ -14,8 +14,8 @@ export default function Songs() {
   return (
     <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
       <T style={styles.intro} en="Sing along to Russian songs. Find a song, add its YouTube video (or a file on your phone), and the lyrics light up as they're sung. Slow it down anytime.">
-        Пойте вместе с русскими песнями. Найдите песню, добавьте видео с YouTube (или файл с телефона), и текст
-        подсвечивается, пока звучит. Скорость можно менять.
+        По́йте вме́сте с ру́сскими пе́снями. Найди́те пе́сню, доба́вьте ви́део с YouTube (и́ли файл с телефо́на), и текст
+        подсве́чивается, пока́ звучи́т. Ско́рость мо́жно меня́ть.
       </T>
 
       {adding ? (
@@ -27,18 +27,18 @@ export default function Songs() {
           }}
         />
       ) : (
-        <Button label="＋ Добавить песню" en="Add a song" onPress={() => setAdding(true)} style={{ flex: 0 }} />
+        <Button label="＋ Доба́вить пе́сню" en="Add a song" onPress={() => setAdding(true)} style={{ flex: 0 }} />
       )}
 
-      {songs?.length === 0 && !adding ? <T style={styles.empty} en="No songs yet.">Песен пока нет.</T> : null}
+      {songs?.length === 0 && !adding ? <T style={styles.empty} en="No songs yet.">Пе́сен пока́ нет.</T> : null}
       {songs?.map((s) => (
         <Pressable
           key={s.id}
           onPress={() => router.push({ pathname: '/song', params: { id: s.id } })}
           onLongPress={() =>
-            Alert.alert('Удалить песню?', s.title, [
-              { text: 'Отмена', style: 'cancel' },
-              { text: 'Удалить', style: 'destructive', onPress: () => removeSong(s.id).then(reload) },
+            Alert.alert('Удали́ть пе́сню?', s.title, [
+              { text: 'Отме́на', style: 'cancel' },
+              { text: 'Удали́ть', style: 'destructive', onPress: () => removeSong(s.id).then(reload) },
             ])
           }
           style={({ pressed }) => [styles.item, pressed && { opacity: 0.7 }]}
@@ -48,12 +48,12 @@ export default function Songs() {
             <Text style={styles.title}>{s.title}</Text>
             <Text style={styles.meta}>
               {s.source.kind === 'youtube' ? 'YouTube' : 'Файл'} ·{' '}
-              {s.times.some((t) => t != null) ? 'текст с подсветкой' : 'только текст'}
+              {s.times.some((t) => t != null) ? 'текст с подсве́ткой' : 'то́лько текст'}
             </Text>
           </View>
         </Pressable>
       ))}
-      {songs?.length ? <T style={styles.empty} en="Long-press a song to delete it.">Удерживайте песню, чтобы удалить её.</T> : null}
+      {songs?.length ? <T style={styles.empty} en="Long-press a song to delete it.">Уде́рживайте пе́сню, что́бы удали́ть её.</T> : null}
     </ScrollView>
   );
 }
@@ -95,21 +95,21 @@ function AddSong({ onDone }: { onDone: (id?: string) => void }) {
       const source = file
         ? { kind: 'file' as const, uri: await keepFile(file.uri, file.name) }
         : { kind: 'youtube' as const, videoId: vid! };
-      const title = lyrics.label === 'Свой текст' ? (file ? searchFromFileName(file.name) : 'Моя песня') : lyrics.label;
+      const title = lyrics.label === 'Свой текст' ? (file ? searchFromFileName(file.name) : 'Моя́ пе́сня') : lyrics.label;
       const s = await addSong(title, source, lyrics);
       onDone(s.id);
     } catch (e) {
       setSaving(false);
-      Alert.alert('Не получилось добавить песню', String(e));
+      Alert.alert('Не получи́лось доба́вить пе́сню', String(e));
     }
   }
 
   if (!lyrics) {
     return (
       <Card style={{ gap: 10 }}>
-        <T style={styles.formTitle} en="1. Find a song">1. Найдите песню</T>
+        <T style={styles.formTitle} en="1. Find a song">1. Найди́те пе́сню</T>
         <LyricsFinder initialQuery="" browse onPick={setLyrics} />
-        <Button label="Отмена" en="Cancel" variant="outline" onPress={() => onDone()} style={{ flex: 0 }} />
+        <Button label="Отме́на" en="Cancel" variant="outline" onPress={() => onDone()} style={{ flex: 0 }} />
       </Card>
     );
   }
@@ -117,20 +117,20 @@ function AddSong({ onDone }: { onDone: (id?: string) => void }) {
   const ytSearch = lyrics.label === 'Свой текст' ? '' : lyrics.label;
   return (
     <Card style={{ gap: 10 }}>
-      <T style={styles.formTitle} en="2. Add the music">2. Добавьте музыку</T>
+      <T style={styles.formTitle} en="2. Add the music">2. Доба́вьте му́зыку</T>
       <Text style={styles.songName}>🎵 {lyrics.label}</Text>
       <Button
-        label="▶️ Найти на YouTube" en="Find it on YouTube"
+        label="▶️ Найти́ на YouTube" en="Find it on YouTube"
         color={colors.again}
         onPress={() =>
-          Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(ytSearch || 'русские песни')}`)
+          Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(ytSearch || 'ру́сские пе́сни')}`)
         }
         style={{ flex: 0 }}
       />
-      <T style={styles.help} en="Pick a video, tap Share → Copy link, then come back here. The link fills in by itself.">Выберите видео, нажмите «Поделиться» → «Копировать ссылку» и вернитесь сюда. Ссылка вставится сама.</T>
+      <T style={styles.help} en="Pick a video, tap Share → Copy link, then come back here. The link fills in by itself.">Вы́берите ви́део, нажми́те «Подели́ться» → «Копи́ровать ссы́лку» и верни́тесь сюда́. Ссы́лка вста́вится сама́.</T>
       <TextInput
         style={styles.input}
-        placeholder="…или вставьте ссылку YouTube"
+        placeholder="…и́ли вста́вьте ссы́лку YouTube"
         value={link}
         onChangeText={(t) => {
           setLink(t);
@@ -139,17 +139,17 @@ function AddSong({ onDone }: { onDone: (id?: string) => void }) {
         autoCapitalize="none"
         autoCorrect={false}
       />
-      {link && !vid ? <T style={styles.error} en="That doesn't look like a YouTube link.">Это не похоже на ссылку YouTube.</T> : null}
-      {vid ? <T style={styles.ok} en="✓ YouTube video ready">✓ Видео YouTube готово</T> : null}
+      {link && !vid ? <T style={styles.error} en="That doesn't look like a YouTube link.">Э́то не похо́же на ссы́лку YouTube.</T> : null}
+      {vid ? <T style={styles.ok} en="✓ YouTube video ready">✓ Ви́део YouTube гото́во</T> : null}
       <Button
-        label={file ? `📂 ${file.name}` : '📂 Или аудиофайл с телефона'}
+        label={file ? `📂 ${file.name}` : '📂 И́ли аудиофа́йл с телефо́на'}
         variant="outline"
         onPress={pick}
         style={{ flex: 0 }}
       />
       <Row>
-        <Button label="Назад" en="Back" variant="outline" onPress={() => setLyrics(null)} />
-        <Button label={saving ? 'Сохраняю…' : 'Сохранить песню'} en="Save song" disabled={!(vid || file) || saving} onPress={save} />
+        <Button label="Наза́д" en="Back" variant="outline" onPress={() => setLyrics(null)} />
+        <Button label={saving ? 'Сохраня́ю…' : 'Сохрани́ть пе́сню'} en="Save song" disabled={!(vid || file) || saving} onPress={save} />
       </Row>
     </Card>
   );

@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
-import { allPhrases, catRu, CATEGORIES } from '../data/phrases';
+import { allPhrases, catEn, catRu, CATEGORIES } from '../data/phrases';
 import { apostropheToStress } from '../lib/compare';
 import { speakRu } from '../lib/speech';
 import { addCustomPhrase, removeCustomPhrase, useProgress } from '../lib/storage';
-import { Button, Card, colors, T } from '../components/ui';
+import { Button, Card, colors, hint, T } from '../components/ui';
 
 export default function Phrases() {
   const [p] = useProgress();
@@ -47,12 +47,12 @@ export default function Phrases() {
             setExpanded((prev) => new Set(prev).add('My phrases'));
           }}
         /> : (
-        <Button label="＋ Добавить свою фразу" en="＋ Add my own phrase" onPress={() => setAdding(true)} style={{ flex: 0 }} />
+        <Button label="＋ Доба́вить свою́ фра́зу" en="＋ Add my own phrase" onPress={() => setAdding(true)} style={{ flex: 0 }} />
       )}
       renderSectionHeader={({ section }) => {
         const isOpen = expanded.has(section.title);
         return (
-          <Pressable onPress={() => toggle(section.title)} style={styles.headerRow} accessibilityRole="button">
+          <Pressable onPress={() => toggle(section.title)} onLongPress={() => hint(catEn(section.title))} style={styles.headerRow} accessibilityRole="button">
             <Text style={styles.header}>
               {isOpen ? '▾' : '▸'} {catRu(section.title)}
             </Text>
@@ -62,7 +62,7 @@ export default function Phrases() {
       }}
       renderSectionFooter={({ section }) =>
         section.title === 'My phrases' && section.count === 0 && expanded.has('My phrases') ? (
-          <T style={styles.empty} en="Nothing yet. Add phrases you hear in real life.">Пока пусто. Добавляйте фразы, которые слышите в жизни.</T>
+          <T style={styles.empty} en="Nothing yet. Add phrases you hear in real life.">Пока́ пу́сто. Добавля́йте фра́зы, кото́рые слы́шите в жи́зни.</T>
         ) : null
       }
       renderItem={({ item }) => {
@@ -78,9 +78,9 @@ export default function Phrases() {
             onLongPress={
               item.deck === 'mine'
                 ? () =>
-                    Alert.alert('Удалить фразу?', item.ru, [
-                      { text: 'Отмена', style: 'cancel' },
-                      { text: 'Удалить', style: 'destructive', onPress: () => removeCustomPhrase(item.ru) },
+                    Alert.alert('Удали́ть фра́зу?', item.ru, [
+                      { text: 'Отме́на', style: 'cancel' },
+                      { text: 'Удали́ть', style: 'destructive', onPress: () => removeCustomPhrase(item.ru) },
                     ])
                 : undefined
             }
@@ -89,7 +89,7 @@ export default function Phrases() {
               <Text style={styles.ru}>{item.ru}</Text>
               {isOpen || item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
               {isOpen && item.note ? <Text style={styles.note}>💡 {item.note}</Text> : null}
-              {isOpen && item.deck === 'mine' ? <T style={styles.note} en="Long-press to delete.">Удерживайте, чтобы удалить.</T> : null}
+              {isOpen && item.deck === 'mine' ? <T style={styles.note} en="Long-press to delete.">Уде́рживайте, что́бы удали́ть.</T> : null}
             </View>
             <Text style={styles.icon}>{learned ? '✓' : '🔊'}</Text>
           </Pressable>
@@ -113,15 +113,15 @@ function AddForm({ onDone }: { onDone: () => void }) {
 
   return (
     <Card style={styles.form}>
-      <T style={styles.formTitle} en="New phrase">Новая фраза</T>
+      <T style={styles.formTitle} en="New phrase">Но́вая фра́за</T>
       <TextInput style={styles.input} placeholder="По-ру́сски" value={ru} onChangeText={setRu} autoFocus />
-      <T style={styles.help} en="Tip: type ' after a vowel to mark stress, e.g. приве't → приве́т.">Совет: поставьте ' после гласной, чтобы отметить ударение: приве't → приве́т.</T>
-      <TextInput style={styles.input} placeholder="Значение по-английски" value={en} onChangeText={setEn} />
-      <TextInput style={styles.input} placeholder="Заметка (необязательно)" value={note} onChangeText={setNote} />
+      <T style={styles.help} en="Tip: type ' after a vowel to mark stress, e.g. приве't → приве́т.">Сове́т: поста́вьте ' по́сле гла́сной, что́бы отме́тить ударе́ние: приве't → приве́т.</T>
+      <TextInput style={styles.input} placeholder="Значе́ние по-англи́йски" value={en} onChangeText={setEn} />
+      <TextInput style={styles.input} placeholder="Заме́тка (необяза́тельно)" value={note} onChangeText={setNote} />
       <View style={styles.formRow}>
-        <Button label="Отмена" en="Cancel" variant="outline" onPress={onDone} />
-        <Button label="🔊 Проверить" en="🔊 Test" variant="outline" disabled={!ru.trim()} onPress={() => speakRu(apostropheToStress(ru))} />
-        <Button label="Сохранить" en="Save" disabled={!ok} onPress={save} />
+        <Button label="Отме́на" en="Cancel" variant="outline" onPress={onDone} />
+        <Button label="🔊 Прове́рить" en="🔊 Test" variant="outline" disabled={!ru.trim()} onPress={() => speakRu(apostropheToStress(ru))} />
+        <Button label="Сохрани́ть" en="Save" disabled={!ok} onPress={save} />
       </View>
     </Card>
   );

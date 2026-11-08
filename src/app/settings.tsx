@@ -21,12 +21,12 @@ export default function Settings() {
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
       <Card style={styles.card}>
-        <T style={styles.h} en="Speech speed">Скорость речи</T>
+        <T style={styles.h} en="Speech speed">Ско́рость ре́чи</T>
         <Row>
           {RATES.map((r) => (
             <Button
               key={r}
-              label={r === 1 ? 'Обычная' : `${r}×`}
+              label={r === 1 ? 'Обы́чная' : `${r}×`}
               variant={s.speechRate === r ? 'solid' : 'outline'}
               onPress={() => {
                 update((prog) => ({ ...prog, settings: { ...prog.settings, speechRate: r } }));
@@ -38,16 +38,16 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <T style={styles.h} en="Russian voice">Русский голос</T>
+        <T style={styles.h} en="Russian voice">Ру́сский го́лос</T>
         {voices === null ? null : voices.length === 0 ? (
           <Text style={styles.body}>
-            Русский голос не установлен, поэтому телефон читает кириллицу не тем голосом. Откройте настройки
-            Android → найдите «Text-to-speech» → Preferred engine (Speech Services by Google) → Install voice
-            data → Русский. Потом вернитесь сюда.
+            Ру́сский го́лос не устано́влен, поэ́тому телефо́н чита́ет кири́ллицу не тем го́лосом. Откро́йте настро́йки
+            Android → найди́те «Text-to-speech» → Preferred engine (Speech Services by Google) → Install voice
+            data → Ру́сский. Пото́м верни́тесь сюда́.
           </Text>
         ) : (
           <>
-            <Text style={styles.body}>Нажмите на голос, чтобы его послушать. Голоса «on device» работают без интернета и надёжнее всего.</Text>
+            <Text style={styles.body}>Нажми́те на го́лос, что́бы его́ послу́шать. Го́лоса «on device» рабо́тают без интерне́та и надёжнее всего́.</Text>
             {voices.map((v) => {
               const active = pickRussianVoice(voices, s.voiceId)?.identifier === v.identifier;
               const label = /local/i.test(v.identifier) ? 'on device' : /network/i.test(v.identifier) ? 'needs internet' : '';
@@ -71,12 +71,12 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <T style={styles.h} en="Phrase cards show first">Что показывать первым</T>
+        <T style={styles.h} en="Phrase cards show first">Что пока́зывать пе́рвым</T>
         <Row>
           {(['ru', 'en'] as const).map((f) => (
             <Button
               key={f}
-              label={f === 'ru' ? 'Русский' : 'English'}
+              label={f === 'ru' ? 'Ру́сский' : 'English'}
               sub={f === 'ru' ? 'read, then recall meaning' : 'recall, then say it'}
               variant={s.front === f ? 'solid' : 'outline'}
               onPress={() => update((prog) => ({ ...prog, settings: { ...prog.settings, front: f } }))}
@@ -86,12 +86,12 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <T style={styles.h} en="Prompt questions">Вопросы</T>
+        <T style={styles.h} en="Prompt questions">Вопро́сы</T>
         <Row>
           {[true, false].map((show) => (
             <Button
               key={String(show)}
-              label={show ? 'Показывать текст' : 'Только на слух'}
+              label={show ? 'Пока́зывать текст' : 'То́лько на слух'}
               en={show ? 'Show Cyrillic' : 'Listen only'}
               variant={s.showPromptText === show ? 'solid' : 'outline'}
               onPress={() => update((prog) => ({ ...prog, settings: { ...prog.settings, showPromptText: show } }))}
@@ -101,7 +101,7 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <T style={styles.h} en="New phrases per day (per deck)">Новых фраз в день (на колоду)</T>
+        <T style={styles.h} en="New phrases per day (per deck)">Но́вых фраз в день (на коло́ду)</T>
         <Row>
           {NEW_PER_DAY.map((n) => (
             <Button
@@ -115,17 +115,17 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <T style={styles.h} en="Progress">Прогресс</T>
-        <Text style={styles.body}>Прогресс хранится только на этом телефоне. Сборка: {BUILD_NUMBER || 'dev'}.</Text>
+        <T style={styles.h} en="Progress">Прогре́сс</T>
+        <Text style={styles.body}>Прогре́сс храни́тся то́лько на э́том телефо́не. Сбо́рка: {BUILD_NUMBER || 'dev'}.</Text>
         <Button
-          label="Сбросить весь прогресс" en="Reset all progress"
+          label="Сбро́сить весь прогре́сс" en="Reset all progress"
           color={colors.again}
           variant="outline"
           style={{ flex: 0 }}
           onPress={() =>
-            Alert.alert('Сбросить прогресс?', 'Вся история повторений на этом телефоне будет удалена.', [
-              { text: 'Отмена', style: 'cancel' },
-              { text: 'Сбросить', style: 'destructive', onPress: () => resetProgress() },
+            Alert.alert('Сбро́сить прогре́сс?', 'Вся исто́рия повторе́ний на э́том телефо́не бу́дет удалена́.', [
+              { text: 'Отме́на', style: 'cancel' },
+              { text: 'Сбро́сить', style: 'destructive', onPress: () => resetProgress() },
             ])
           }
         />

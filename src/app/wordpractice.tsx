@@ -34,7 +34,7 @@ export default function WordPractice() {
     return (
       <View style={styles.center}>
         <Text style={styles.done}>Отли́чно! 🎉</Text>
-        <Button label="Назад" en="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <Button label="Наза́д" en="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -59,10 +59,10 @@ export default function WordPractice() {
         <Marked sentence={sentence} word={w.word} style={styles.sentence} />
         {item.full ? (
           <Pressable onPress={() => setFull(!full)} hitSlop={8}>
-            <Text style={styles.link}>{full ? '◂ Коротко' : 'Целое предложение ▸'}</Text>
+            <Text style={styles.link}>{full ? '◂ Ко́ротко' : 'Це́лое предложе́ние ▸'}</Text>
           </Pressable>
         ) : null}
-        <Button label="🔊 Слушать" variant="outline" onPress={() => speakRu(sentence)} style={{ flex: 0 }} />
+        <Button label="🔊 Слу́шать" variant="outline" onPress={() => speakRu(sentence)} style={{ flex: 0 }} />
         {shown ? (
           <>
             <View style={styles.divider} />
@@ -77,17 +77,17 @@ export default function WordPractice() {
             ))}
           </>
         ) : (
-          <Text style={styles.hint}>Что значит выделенное слово?</Text>
+          <Text style={styles.hint}>Что зна́чит вы́деленное сло́во?</Text>
         )}
       </Card>
       {shown ? (
         <Row>
-          <Button label="Учу" en="Still learning: I want to practice it" color={colors.hard} onPress={() => grade('hard')} />
-          <Button label="Почти" en="Almost: I got it, but not confident yet" color={colors.good} onPress={() => grade('good')} />
-          <Button label="Знаю" en="I know it: it's memorized" color={colors.easy} onPress={() => grade('easy')} />
+          <Button label="Учу́" en="Still learning: I want to practice it" color={colors.hard} onPress={() => grade('hard')} />
+          <Button label="Почти́" en="Almost: I got it, but not confident yet" color={colors.good} onPress={() => grade('good')} />
+          <Button label="Зна́ю" en="I know it: it's memorized" color={colors.easy} onPress={() => grade('easy')} />
         </Row>
       ) : (
-        <Button label="Показать значение" onPress={() => setShown(true)} />
+        <Button label="Показа́ть значе́ние" onPress={() => setShown(true)} />
       )}
     </ScrollView>
   );
