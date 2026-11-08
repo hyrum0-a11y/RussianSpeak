@@ -7,7 +7,7 @@ import { buildQueue, newCard, schedule, type Grade } from '../lib/srs';
 import { loadProgress, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
-import { Button, Card, colors, Row } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 const byId = new Map(PROMPTS.map((p) => [p.id, p]));
 const SESSION_NEW = 5;
@@ -40,8 +40,8 @@ export default function Respond() {
     return (
       <View style={styles.center}>
         <Text style={styles.doneTitle}>Молоде́ц! 💪</Text>
-        <Text style={styles.doneBody}>That's all the prompts for now.</Text>
-        <Button label="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <T style={styles.doneBody} en="That's all the prompts for now.">На сегодня вопросов больше нет.</T>
+        <Button label="Назад" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -61,7 +61,7 @@ export default function Respond() {
       <Text style={styles.progress}>{queue.length} left</Text>
 
       <Card style={styles.card}>
-        <Text style={styles.label}>Question</Text>
+        <T style={styles.label} en="Question">Вопрос</T>
         {showText ? (
           <>
             <Text style={styles.ru}>{current.ru}</Text>
@@ -69,38 +69,38 @@ export default function Respond() {
           </>
         ) : (
           <Pressable onPress={() => setShowText(true)}>
-            <Text style={styles.hidden}>Listening mode. Tap to show the Cyrillic.</Text>
+            <T style={styles.hidden} en="Listening mode. Tap to show the Cyrillic.">Только на слух. Нажмите, чтобы показать текст.</T>
           </Pressable>
         )}
         <Row>
-          <Button label="🔊 Repeat" variant="outline" onPress={() => speakRu(current.ru, rate)} />
-          <Button label="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
+          <Button label="🔊 Ещё раз" en="🔊 Repeat" variant="outline" onPress={() => speakRu(current.ru, rate)} />
+          <Button label="🐢 Медленно" en="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
         </Row>
         {current.hint ? <Text style={styles.hint}>💡 Grammar: {current.hint}</Text> : null}
       </Card>
 
-      <Text style={styles.section}>Your answer: record it out loud</Text>
+      <T style={styles.section} en="Your answer: record it out loud">Ваш ответ: запишите его вслух</T>
       <SpeakControls text={current.answers[0].ru} rate={rate} showListen={false} />
 
       {showAnswers ? (
         <>
-          <Text style={styles.section}>Sample answers</Text>
+          <T style={styles.section} en="Sample answers">Примеры ответов</T>
           {current.answers.map((a) => (
             <Card key={a.ru} style={styles.answer}>
               <Text style={styles.answerRu}>{a.ru}</Text>
               <Peek en={a.en} />
-              <Button label="🔊 Listen" variant="outline" onPress={() => speakRu(a.ru, rate)} style={{ flex: 0 }} />
+              <Button label="🔊 Слушать" en="🔊 Listen" variant="outline" onPress={() => speakRu(a.ru, rate)} style={{ flex: 0 }} />
             </Card>
           ))}
-          <Text style={styles.question}>How did your answer go?</Text>
+          <T style={styles.question} en="How did your answer go?">Как получился ответ?</T>
           <Row>
-            <Button label="Hard" color={colors.hard} onPress={() => grade('hard')} />
-            <Button label="Good" color={colors.good} onPress={() => grade('good')} />
-            <Button label="Easy" color={colors.easy} onPress={() => grade('easy')} />
+            <Button label="Учу" en="Still learning: I want to practice it" color={colors.hard} onPress={() => grade('hard')} />
+            <Button label="Почти" en="Almost: I got it, but not confident yet" color={colors.good} onPress={() => grade('good')} />
+            <Button label="Знаю" en="I know it: it's memorized" color={colors.easy} onPress={() => grade('easy')} />
           </Row>
         </>
       ) : (
-        <Button label="Show sample answers" onPress={() => setShowAnswers(true)} />
+        <Button label="Показать примеры ответов" en="Show sample answers" onPress={() => setShowAnswers(true)} />
       )}
     </ScrollView>
   );

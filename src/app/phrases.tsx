@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
-import { allPhrases, CATEGORIES } from '../data/phrases';
+import { allPhrases, catRu, CATEGORIES } from '../data/phrases';
 import { apostropheToStress } from '../lib/compare';
 import { speakRu } from '../lib/speech';
 import { addCustomPhrase, removeCustomPhrase, useProgress } from '../lib/storage';
-import { Button, Card, colors } from '../components/ui';
+import { Button, Card, colors, T } from '../components/ui';
 
 export default function Phrases() {
   const [p] = useProgress();
@@ -47,14 +47,14 @@ export default function Phrases() {
             setExpanded((prev) => new Set(prev).add('My phrases'));
           }}
         /> : (
-        <Button label="＋ Add my own phrase" onPress={() => setAdding(true)} style={{ flex: 0 }} />
+        <Button label="＋ Добавить свою фразу" en="＋ Add my own phrase" onPress={() => setAdding(true)} style={{ flex: 0 }} />
       )}
       renderSectionHeader={({ section }) => {
         const isOpen = expanded.has(section.title);
         return (
           <Pressable onPress={() => toggle(section.title)} style={styles.headerRow} accessibilityRole="button">
             <Text style={styles.header}>
-              {isOpen ? '▾' : '▸'} {section.title}
+              {isOpen ? '▾' : '▸'} {catRu(section.title)}
             </Text>
             <Text style={styles.count}>{section.count}</Text>
           </Pressable>
@@ -62,7 +62,7 @@ export default function Phrases() {
       }}
       renderSectionFooter={({ section }) =>
         section.title === 'My phrases' && section.count === 0 && expanded.has('My phrases') ? (
-          <Text style={styles.empty}>Nothing yet. Add phrases you hear in real life.</Text>
+          <T style={styles.empty} en="Nothing yet. Add phrases you hear in real life.">Пока пусто. Добавляйте фразы, которые слышите в жизни.</T>
         ) : null
       }
       renderItem={({ item }) => {
@@ -78,9 +78,9 @@ export default function Phrases() {
             onLongPress={
               item.deck === 'mine'
                 ? () =>
-                    Alert.alert('Delete phrase?', item.ru, [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Delete', style: 'destructive', onPress: () => removeCustomPhrase(item.ru) },
+                    Alert.alert('Удалить фразу?', item.ru, [
+                      { text: 'Отмена', style: 'cancel' },
+                      { text: 'Удалить', style: 'destructive', onPress: () => removeCustomPhrase(item.ru) },
                     ])
                 : undefined
             }
@@ -89,7 +89,7 @@ export default function Phrases() {
               <Text style={styles.ru}>{item.ru}</Text>
               {isOpen || item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
               {isOpen && item.note ? <Text style={styles.note}>💡 {item.note}</Text> : null}
-              {isOpen && item.deck === 'mine' ? <Text style={styles.note}>Long-press to delete.</Text> : null}
+              {isOpen && item.deck === 'mine' ? <T style={styles.note} en="Long-press to delete.">Удерживайте, чтобы удалить.</T> : null}
             </View>
             <Text style={styles.icon}>{learned ? '✓' : '🔊'}</Text>
           </Pressable>
@@ -113,15 +113,15 @@ function AddForm({ onDone }: { onDone: () => void }) {
 
   return (
     <Card style={styles.form}>
-      <Text style={styles.formTitle}>New phrase</Text>
+      <T style={styles.formTitle} en="New phrase">Новая фраза</T>
       <TextInput style={styles.input} placeholder="По-ру́сски" value={ru} onChangeText={setRu} autoFocus />
-      <Text style={styles.help}>Tip: type ' after a vowel to mark stress, e.g. приве't → приве́т.</Text>
-      <TextInput style={styles.input} placeholder="Meaning in English" value={en} onChangeText={setEn} />
-      <TextInput style={styles.input} placeholder="Note (optional)" value={note} onChangeText={setNote} />
+      <T style={styles.help} en="Tip: type ' after a vowel to mark stress, e.g. приве't → приве́т.">Совет: поставьте ' после гласной, чтобы отметить ударение: приве't → приве́т.</T>
+      <TextInput style={styles.input} placeholder="Значение по-английски" value={en} onChangeText={setEn} />
+      <TextInput style={styles.input} placeholder="Заметка (необязательно)" value={note} onChangeText={setNote} />
       <View style={styles.formRow}>
-        <Button label="Cancel" variant="outline" onPress={onDone} />
-        <Button label="🔊 Test" variant="outline" disabled={!ru.trim()} onPress={() => speakRu(apostropheToStress(ru))} />
-        <Button label="Save" disabled={!ok} onPress={save} />
+        <Button label="Отмена" en="Cancel" variant="outline" onPress={onDone} />
+        <Button label="🔊 Проверить" en="🔊 Test" variant="outline" disabled={!ru.trim()} onPress={() => speakRu(apostropheToStress(ru))} />
+        <Button label="Сохранить" en="Save" disabled={!ok} onPress={save} />
       </View>
     </Card>
   );

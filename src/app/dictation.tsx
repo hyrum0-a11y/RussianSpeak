@@ -8,7 +8,7 @@ import { speakRu } from '../lib/speech';
 import { loadProgress, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { WordDiff } from '../components/WordDiff';
-import { Button, Card, colors, Row } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 const SESSION = 10;
 // Long poetry lines are tiring to type; keep dictation to short/medium phrases.
@@ -39,8 +39,8 @@ export default function Dictation() {
     return (
       <View style={styles.center}>
         <Text style={styles.doneTitle}>Гото́во! ✍️</Text>
-        <Text style={styles.doneBody}>Average: {Math.round((total / Math.max(1, items.length)) * 100)}% of words right.</Text>
-        <Button label="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <Text style={styles.doneBody}>В среднем {Math.round((total / Math.max(1, items.length)) * 100)}% слов верно.</Text>
+        <Button label="Назад" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -65,10 +65,10 @@ export default function Dictation() {
         {i + 1} / {items.length}
       </Text>
       <Card style={styles.card}>
-        <Text style={styles.label}>Listen and type what you hear</Text>
+        <T style={styles.label} en="Listen and type what you hear">Слушайте и пишите, что слышите</T>
         <Row>
-          <Button label="🔊 Play" onPress={() => speakRu(current.ru, rate)} />
-          <Button label="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
+          <Button label="🔊 Слушать" en="🔊 Play" onPress={() => speakRu(current.ru, rate)} />
+          <Button label="🐢 Медленно" en="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
         </Row>
         <TextInput
           style={styles.input}
@@ -81,20 +81,20 @@ export default function Dictation() {
           multiline
           onSubmitEditing={check}
         />
-        <Text style={styles.help}>Switch your keyboard to Russian (🌐 key). Stress marks and ё are optional.</Text>
+        <T style={styles.help} en="Switch your keyboard to Russian (🌐 key). Stress marks and ё are optional.">Включите русскую клавиатуру (🌐). Ударения и ё можно не ставить.</T>
       </Card>
 
       {results ? (
         <Card style={styles.card}>
           <WordDiff results={results} />
-          <Text style={styles.score}>{Math.round(score(results) * 100)}% of words right</Text>
+          <Text style={styles.score}>{Math.round(score(results) * 100)}% слов верно</Text>
           <Peek en={current.en} open={current.idiom} />
-          <Button label="Next →" onPress={next} style={{ flex: 0 }} />
+          <Button label="Дальше →" en="Next →" onPress={next} style={{ flex: 0 }} />
         </Card>
       ) : (
         <Row>
-          <Button label="Skip" variant="outline" onPress={() => setResults(compareWords(current.ru, ''))} />
-          <Button label="Check" disabled={!typed.trim()} onPress={check} />
+          <Button label="Пропустить" en="Skip" variant="outline" onPress={() => setResults(compareWords(current.ru, ''))} />
+          <Button label="Проверить" en="Check" disabled={!typed.trim()} onPress={check} />
         </Row>
       )}
     </ScrollView>

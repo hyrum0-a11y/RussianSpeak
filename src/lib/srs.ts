@@ -73,6 +73,13 @@ export function buildQueue(
 /** Hard, Good or Easy. ("Again" from older versions counts as Hard.) */
 export type Level = 'hard' | 'good' | 'easy';
 
+/** How the three grades are shown: Учу (still learning), Почти (almost), Знаю (I know it). */
+export const LEVEL_NAMES: Record<Level, { ru: string; en: string }> = {
+  hard: { ru: 'Учу', en: "Still learning: I want to practice it" },
+  good: { ru: 'Почти', en: 'Almost: I got it, but not confident yet' },
+  easy: { ru: 'Знаю', en: "I know it: it's memorized" },
+};
+
 /** How well you know a card: your last grade, or a guess from its history for older cards. */
 export function gradeOf(card: CardState): Level {
   if (card.last) return card.last === 'again' ? 'hard' : card.last;

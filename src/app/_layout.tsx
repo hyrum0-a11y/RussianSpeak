@@ -23,20 +23,20 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.bg },
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'Home', headerShown: false }} />
-        <Stack.Screen name="deck" options={{ title: 'Deck' }} />
-        <Stack.Screen name="review" options={{ title: 'Phrase review' }} />
-        <Stack.Screen name="respond" options={{ title: 'Respond to prompts' }} />
-        <Stack.Screen name="phrases" options={{ title: 'Phrase library' }} />
-        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-        <Stack.Screen name="dictation" options={{ title: 'Dictation' }} />
-        <Stack.Screen name="cloze" options={{ title: 'Fill in the blank' }} />
-        <Stack.Screen name="songs" options={{ title: 'Songs' }} />
+        <Stack.Screen name="index" options={{ title: 'Главная', headerShown: false }} />
+        <Stack.Screen name="deck" options={{ title: 'Колода' }} />
+        <Stack.Screen name="review" options={{ title: 'Карточки' }} />
+        <Stack.Screen name="respond" options={{ title: 'Отвечать на вопросы' }} />
+        <Stack.Screen name="phrases" options={{ title: 'Фразы' }} />
+        <Stack.Screen name="settings" options={{ title: 'Настройки' }} />
+        <Stack.Screen name="dictation" options={{ title: 'Диктант' }} />
+        <Stack.Screen name="cloze" options={{ title: 'Пропуск' }} />
+        <Stack.Screen name="songs" options={{ title: 'Поём вместе' }} />
         <Stack.Screen name="dictionary" options={{ title: 'Словарь' }} />
-        <Stack.Screen name="level" options={{ title: 'Cards' }} />
+        <Stack.Screen name="level" options={{ title: 'Карточки' }} />
         <Stack.Screen name="words" options={{ title: 'Мои слова' }} />
         <Stack.Screen name="wordpractice" options={{ title: 'Слова в контексте' }} />
-        <Stack.Screen name="song" options={{ title: 'Song' }} />
+        <Stack.Screen name="song" options={{ title: 'Песня' }} />
       </Stack>
     </>
   );

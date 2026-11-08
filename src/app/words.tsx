@@ -5,12 +5,13 @@ import { removeWord, useProgress, type SavedWord } from '../lib/storage';
 import { speakRu } from '../lib/speech';
 import { Marked } from '../components/Marked';
 import { contexts } from '../lib/wiktionary';
-import { Button, colors } from '../components/ui';
+import { LEVEL_NAMES } from '../lib/srs';
+import { Button, colors, T } from '../components/ui';
 
 const LEVEL = {
-  hard: { label: 'Hard', color: colors.hard },
-  good: { label: 'Good', color: colors.good },
-  easy: { label: 'Easy', color: colors.easy },
+  hard: { label: LEVEL_NAMES.hard.ru, color: colors.hard },
+  good: { label: LEVEL_NAMES.good.ru, color: colors.good },
+  easy: { label: LEVEL_NAMES.easy.ru, color: colors.easy },
 } as const;
 
 /** Мои слова: words you saved from the dictionary, each with sentences that use it. */
@@ -23,17 +24,17 @@ export default function Words() {
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
       <Text style={styles.intro}>
-        Learn each word inside real sentences. Save words from the 📖 Словарь with “＋ В мои слова”.
+        Учите каждое слово в живых фразах. Сохраняйте слова из 📖 Словаря кнопкой «＋ В мои слова».
       </Text>
       <Button
-        label={words.length ? `Практика · ${words.length}` : 'Open the Словарь'}
+        label={words.length ? `Практика · ${words.length}` : 'Открыть Словарь'}
         onPress={() => (words.length ? router.push('/wordpractice') : router.push('/dictionary'))}
         style={{ flex: 0 }}
       />
       {words.map((w) => (
         <WordItem key={w.word} w={w} open={open === w.word} onPress={() => setOpen(open === w.word ? null : w.word)} />
       ))}
-      {words.length ? <Text style={styles.hint}>Long-press a word to remove it.</Text> : null}
+      {words.length ? <T style={styles.hint} en="Long-press a word to remove it.">Удерживайте слово, чтобы удалить его.</T> : null}
     </ScrollView>
   );
 }
@@ -44,16 +45,16 @@ function WordItem({ w, open, onPress }: { w: SavedWord; open: boolean; onPress: 
     <Pressable
       onPress={onPress}
       onLongPress={() =>
-        Alert.alert('Remove word?', w.word, [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove', style: 'destructive', onPress: () => removeWord(w.word) },
+        Alert.alert('Удалить слово?', w.word, [
+          { text: 'Отмена', style: 'cancel' },
+          { text: 'Удалить', style: 'destructive', onPress: () => removeWord(w.word) },
         ])
       }
       style={[styles.item, open && { gap: 8 }]}
     >
       <View style={styles.head}>
         <Text style={styles.word}>{w.word}</Text>
-        <Text style={[styles.level, { color: lvl?.color ?? colors.muted }]}>{lvl?.label ?? 'New'}</Text>
+        <Text style={[styles.level, { color: lvl?.color ?? colors.muted }]}>{lvl?.label ?? 'Новое'}</Text>
       </View>
       {open ? (
         <>
@@ -67,7 +68,7 @@ function WordItem({ w, open, onPress }: { w: SavedWord; open: boolean; onPress: 
               <Marked sentence={`🔊 ${c.short}`} word={w.word} style={styles.example} />
             </Pressable>
           ))}
-          {!w.examples.length && !w.phrases?.length ? <Text style={styles.hint}>No example sentences found for this word.</Text> : null}
+          {!w.examples.length && !w.phrases?.length ? <T style={styles.hint} en="No example sentences found for this word.">Примеров для этого слова не нашлось.</T> : null}
         </>
       ) : null}
     </Pressable>

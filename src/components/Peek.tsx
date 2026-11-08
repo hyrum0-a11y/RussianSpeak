@@ -13,7 +13,7 @@ export function Peek({ en, extra, open = false }: { en: string; extra?: string; 
   if (!shown) {
     return (
       <Pressable onPress={() => setShown(true)} hitSlop={8} accessibilityRole="button">
-        <Text style={styles.peek}>👀 Peek at English</Text>
+        <Text style={styles.peek}>👀 English</Text>
       </Pressable>
     );
   }
@@ -22,7 +22,7 @@ export function Peek({ en, extra, open = false }: { en: string; extra?: string; 
     <Pressable onPress={() => setShown(false)} hitSlop={8} accessibilityRole="button" accessibilityHint="Hides the English">
       <Text style={styles.en}>{en}</Text>
       {extra ? <Text style={styles.extra}>{extra}</Text> : null}
-      <Text style={styles.hide}>🙈 Hide English</Text>
+      <Text style={styles.hide}>🙈 Скрыть</Text>
     </Pressable>
   );
 }

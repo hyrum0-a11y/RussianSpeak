@@ -5,17 +5,17 @@ import { router } from 'expo-router';
 import { allPhrases, DECKS, phrasesIn } from '../data/phrases';
 import { PROMPTS } from '../data/prompts';
 import { hasRussianVoice } from '../lib/speech';
-import { buildQueue, gradeOf, type Level } from '../lib/srs';
+import { buildQueue, gradeOf, LEVEL_NAMES, type Level } from '../lib/srs';
 import { statusOf } from '../lib/status';
-import { newLeftToday, useProgress, type Progress } from '../lib/storage';
+import { newLeftToday, updateProgress, useProgress, type Progress } from '../lib/storage';
 import { checkForUpdate, installUpdate, type Update } from '../lib/update';
 import { ProgressBar } from '../components/ProgressBar';
-import { Button, colors } from '../components/ui';
+import { Button, colors, hint, T } from '../components/ui';
 
-const LEVELS: { grade: Level; label: string; color: string }[] = [
-  { grade: 'hard', label: 'Hard', color: colors.hard },
-  { grade: 'good', label: 'Good', color: colors.good },
-  { grade: 'easy', label: 'Easy', color: colors.easy },
+const LEVELS: { grade: Level; color: string }[] = [
+  { grade: 'hard', color: colors.hard },
+  { grade: 'good', color: colors.good },
+  { grade: 'easy', color: colors.easy },
 ];
 
 export default function Home() {
@@ -46,9 +46,16 @@ export default function Home() {
   return (
     <ScrollView contentContainerStyle={[styles.wrap, { paddingTop: insets.top + 12 }]}>
       {update && (
-        <Banner tone="good" title={`Update available · build ${update.build}`} body="Downloads inside the app, then Android asks to install. The first time, allow RussianSpeak to install apps. Your progress is kept.">
+        <Banner
+          tone="good"
+          title={`Есть обновление · сборка ${update.build}`}
+          titleEn={`Update available · build ${update.build}`}
+          body="Скачивается в приложении, потом Android предложит установить. В первый раз разрешите RussianSpeak устанавливать приложения. Прогресс сохранится."
+          bodyEn="Downloads inside the app, then Android asks to install. The first time, allow RussianSpeak to install apps. Your progress is kept."
+        >
           <Button
-            label={progress === null ? '⬇ Download & install' : `Downloading… ${Math.round(progress * 100)}%`}
+            en="Download & install"
+            label={progress === null ? '⬇ Скачать и установить' : `Скачивание… ${Math.round(progress * 100)}%`}
             color={colors.good}
             disabled={progress !== null}
             onPress={async () => {
@@ -61,7 +68,29 @@ export default function Home() {
         </Banner>
       )}
       {!voiceOk && (
-        <Banner tone="warn" title="No Russian voice found" body="Open Settings → Russian voice for the steps to install one." />
+        <Banner
+          tone="warn"
+          title="Нет русского голоса"
+          titleEn="No Russian voice found"
+          body="Откройте Настройки → Русский голос, там написано, как его установить."
+          bodyEn="Open Settings → Russian voice for the steps to install one."
+        />
+      )}
+      {!p.settings.holdHintDone && (
+        <Banner
+          tone="good"
+          title="Всё по-русски 🇷🇺"
+          titleEn="Everything is in Russian"
+          body="Нажмите и удерживайте любую кнопку или надпись, чтобы увидеть английский."
+          bodyEn="Press and hold any button or label to see the English."
+        >
+          <Button
+            label="Понятно"
+            en="Got it"
+            onPress={() => updateProgress((q) => ({ ...q, settings: { ...q.settings, holdHintDone: true } }))}
+            style={{ flex: 0 }}
+          />
+        </Banner>
       )}
 
       {/* Hero */}
@@ -70,11 +99,11 @@ export default function Home() {
         <Text style={styles.heroTitle}>Говори́ по-ру́сски</Text>
         <View style={styles.heroProgress}>
           <ProgressBar value={all.length ? learned / all.length : 0} color="#F2C14E" height={8} />
-          <Text style={styles.heroMeta}>
-            {learned} of {all.length} phrases learned
-          </Text>
+          <T style={styles.heroMeta} en={`${learned} of ${all.length} phrases learned`}>
+            Выучено {learned} из {all.length}
+          </T>
         </View>
-        <Text style={styles.heroAsk}>Cards you marked…</Text>
+        <T style={styles.heroAsk} en="Cards you marked…">Карточки, которые вы отметили…</T>
         <View style={styles.levels}>
           {LEVELS.map((l) => {
             const n = levelCounts[l.grade];
@@ -83,9 +112,10 @@ export default function Home() {
                 key={l.grade}
                 disabled={!n}
                 onPress={() => router.push({ pathname: '/level', params: { grade: l.grade } })}
+                onLongPress={() => hint(LEVEL_NAMES[l.grade].en)}
                 style={({ pressed }) => [styles.level, { backgroundColor: l.color }, (pressed || !n) && { opacity: n ? 0.8 : 0.4 }]}
               >
-                <Text style={styles.levelLabel}>{l.label}</Text>
+                <Text style={styles.levelLabel}>{LEVEL_NAMES[l.grade].ru}</Text>
                 <Text style={styles.levelCount}>{n}</Text>
               </Pressable>
             );
@@ -95,7 +125,7 @@ export default function Home() {
 
 
       {/* Decks */}
-      <Text style={styles.sectionTitle}>Decks</Text>
+      <T style={styles.sectionTitle} en="Decks">Колоды</T>
       <View style={styles.grid}>
         {DECKS.map((d, i) => {
           const s = deckStats[i];
@@ -103,6 +133,7 @@ export default function Home() {
             <Pressable
               key={d.id}
               onPress={() => router.push({ pathname: '/deck', params: { deck: d.id } })}
+              onLongPress={() => hint(d.en)}
               style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
             >
               <View style={styles.tileTop}>
@@ -117,7 +148,7 @@ export default function Home() {
                 {d.title}
               </Text>
               <Text style={styles.tileMeta}>
-                {s.total ? `${s.learned}/${s.total} learned` : 'Add your own'}
+                {s.total ? `выучено ${s.learned}/${s.total}` : 'Добавьте свои'}
               </Text>
               <ProgressBar value={s.total ? s.learned / s.total : 0} height={4} />
             </Pressable>
@@ -126,33 +157,33 @@ export default function Home() {
       </View>
 
       {/* Practice */}
-      <Text style={styles.sectionTitle}>Practice</Text>
+      <T style={styles.sectionTitle} en="Practice">Практика</T>
       <View style={styles.modes}>
-        <ModeTile icon="🗣" label="Speak" sub={`${promptsDue} prompts`} onPress={() => router.push('/respond')} />
-        <ModeTile icon="🎧" label="Dictation" sub="Hear & type" onPress={() => router.push('/dictation')} />
-        <ModeTile icon="✏️" label="Fill blank" sub="Endings" onPress={() => router.push('/cloze')} />
+        <ModeTile icon="🗣" label="Говорить" sub={`${promptsDue} вопр.`} en={`Speak: answer questions out loud (${promptsDue} prompts)`} onPress={() => router.push('/respond')} />
+        <ModeTile icon="🎧" label="Диктант" sub="Слушать и писать" en="Dictation: hear & type" onPress={() => router.push('/dictation')} />
+        <ModeTile icon="✏️" label="Пропуск" sub="Окончания" en="Fill in the blank: endings" onPress={() => router.push('/cloze')} />
       </View>
-      <Pressable onPress={() => router.push('/words')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
+      <Pressable onPress={() => router.push('/words')} onLongPress={() => hint('My words: new words, learned inside real sentences')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
         <Text style={styles.modeIcon}>📝</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.modeLabel}>Мои слова · {p.words.length}</Text>
-          <Text style={styles.modeSub}>New words, learned inside real sentences</Text>
+          <Text style={styles.modeSub}>Новые слова в настоящих фразах</Text>
         </View>
         <Text style={styles.chev}>›</Text>
       </Pressable>
-      <Pressable onPress={() => router.push('/songs')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
+      <Pressable onPress={() => router.push('/songs')} onLongPress={() => hint('Sing along: YouTube or your own files, lyrics light up')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
         <Text style={styles.modeIcon}>🎵</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.modeLabel}>Sing along</Text>
-          <Text style={styles.modeSub}>YouTube or your own files, lyrics light up</Text>
+          <Text style={styles.modeLabel}>Поём вместе</Text>
+          <Text style={styles.modeSub}>YouTube или свои файлы, текст подсвечивается</Text>
         </View>
         <Text style={styles.chev}>›</Text>
       </Pressable>
 
       <View style={styles.footer}>
-        <FooterLink label="📚 Phrases" onPress={() => router.push('/phrases')} />
-        <FooterLink label="📖 Словарь" onPress={() => router.push('/dictionary')} />
-        <FooterLink label="⚙️ Settings" onPress={() => router.push('/settings')} />
+        <FooterLink label="📚 Фразы" en="Phrase library" onPress={() => router.push('/phrases')} />
+        <FooterLink label="📖 Словарь" en="Dictionary" onPress={() => router.push('/dictionary')} />
+        <FooterLink label="⚙️ Настройки" en="Settings" onPress={() => router.push('/settings')} />
       </View>
     </ScrollView>
   );
@@ -169,9 +200,9 @@ function deckStat(deck: (typeof DECKS)[number]['id'], p: Progress, now: number) 
   };
 }
 
-function ModeTile({ icon, label, sub, onPress }: { icon: string; label: string; sub: string; onPress: () => void }) {
+function ModeTile({ icon, label, sub, en, onPress }: { icon: string; label: string; sub: string; en: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.mode, pressed && styles.pressed]}>
+    <Pressable onPress={onPress} onLongPress={() => hint(en)} style={({ pressed }) => [styles.mode, pressed && styles.pressed]}>
       <Text style={styles.modeIcon}>{icon}</Text>
       <Text style={styles.modeLabel}>{label}</Text>
       <Text style={styles.modeSub}>{sub}</Text>
@@ -179,20 +210,38 @@ function ModeTile({ icon, label, sub, onPress }: { icon: string; label: string; 
   );
 }
 
-function FooterLink({ label, onPress }: { label: string; onPress: () => void }) {
+function FooterLink({ label, en, onPress }: { label: string; en: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} hitSlop={8} style={({ pressed }) => [styles.footerLink, pressed && styles.pressed]}>
+    <Pressable onPress={onPress} onLongPress={() => hint(en)} hitSlop={8} style={({ pressed }) => [styles.footerLink, pressed && styles.pressed]}>
       <Text style={styles.footerText}>{label}</Text>
     </Pressable>
   );
 }
 
-function Banner({ tone, title, body, children }: { tone: 'good' | 'warn'; title: string; body: string; children?: ReactNode }) {
+function Banner({
+  tone,
+  title,
+  titleEn,
+  body,
+  bodyEn,
+  children,
+}: {
+  tone: 'good' | 'warn';
+  title: string;
+  titleEn: string;
+  body: string;
+  bodyEn: string;
+  children?: ReactNode;
+}) {
   const c = tone === 'good' ? { bg: '#E8F6EC', border: '#9FD5B0', fg: '#1B5E31' } : { bg: '#FFF4E0', border: '#F0C27A', fg: '#7A4B00' };
   return (
     <View style={[styles.banner, { backgroundColor: c.bg, borderColor: c.border }]}>
-      <Text style={[styles.bannerTitle, { color: c.fg }]}>{title}</Text>
-      <Text style={{ color: c.fg, lineHeight: 20 }}>{body}</Text>
+      <T style={[styles.bannerTitle, { color: c.fg }]} en={titleEn}>
+        {title}
+      </T>
+      <T style={{ color: c.fg, lineHeight: 20 }} en={bodyEn}>
+        {body}
+      </T>
       {children}
     </View>
   );

@@ -37,7 +37,7 @@ export function SpeechCheck({ text }: { text: string }) {
     setListening(false);
     if (e.error === 'no-speech' || e.error === 'speech-timeout') setError("Didn't catch anything. Try again a bit louder.");
     else if (e.error === 'language-not-supported')
-      setError('Russian speech recognition is not installed. In the Google app, open Settings → Voice → Offline speech recognition and add Russian.');
+      setError('Распознавание русской речи не установлено. В приложении Google: Настройки → Голос → Распознавание речи офлайн → добавьте русский.');
     else if (e.error !== 'aborted') setError(`Speech recognition error: ${e.message || e.error}`);
   });
 
@@ -47,7 +47,7 @@ export function SpeechCheck({ text }: { text: string }) {
     setHeard('');
     const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!perm.granted) {
-      setError('Allow microphone access to check your pronunciation.');
+      setError('Разрешите доступ к микрофону, чтобы проверить произношение.');
       return;
     }
     stopSpeaking();
@@ -59,7 +59,8 @@ export function SpeechCheck({ text }: { text: string }) {
   return (
     <View style={styles.wrap}>
       <Button
-        label={listening ? '⏹ Listening… tap to stop' : '🗣 Check my pronunciation'}
+        label={listening ? '⏹ Слушаю… нажмите, чтобы остановить' : '🗣 Проверить произношение'}
+        en={listening ? 'Listening… tap to stop' : 'Check my pronunciation'}
         color={colors.good}
         variant={listening ? 'solid' : 'outline'}
         onPress={() => (listening ? ExpoSpeechRecognitionModule.stop() : start())}
@@ -70,7 +71,7 @@ export function SpeechCheck({ text }: { text: string }) {
         <View style={styles.result}>
           <WordDiff results={results} />
           <Text style={styles.score}>
-            {pct === 100 ? 'Отли́чно! Every word understood.' : `${pct}% of words understood.`} Heard: “{heard}”
+            {pct === 100 ? 'Отли́чно! Понятно каждое слово.' : `Понятно ${pct}% слов.`} Услышано: «{heard}»
           </Text>
         </View>
       )}
