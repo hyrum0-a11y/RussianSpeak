@@ -6,6 +6,7 @@ import { speakRu } from '../lib/speech';
 import { useProgress } from '../lib/storage';
 import { dictKey, wordList } from '../lib/wiktionary';
 import { colors } from '../components/ui';
+import { AskAI } from '../components/AskAI';
 
 type Row = { word: string; key: string; lookup?: boolean };
 
@@ -125,6 +126,7 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
           {i + 1}. {m}
         </Text>
       ))}
+      <AskAI text={word} />
       <Pressable onPress={() => Linking.openURL(wiktionaryUrl(entry.title))} hitSlop={6}>
         <Text style={styles.source}>Викисловарь ↗</Text>
       </Pressable>

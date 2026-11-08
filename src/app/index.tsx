@@ -94,19 +94,17 @@ export default function Home() {
         </View>
       </View>
 
-      <Pressable
-        onPress={() => router.push({ pathname: '/review', params: { starred: '1' } })}
-        disabled={!p.starred.length}
-        style={({ pressed }) => [styles.songs, pressed && styles.pressed, !p.starred.length && { opacity: 0.85 }]}
-      >
-        <Text style={[styles.modeIcon, { color: '#E0A800' }]}>★</Text>
+      <Pressable onPress={() => router.push('/difficult')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
+        <Text style={styles.modeIcon}>🧗</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.modeLabel}>Working on · {p.starred.length}</Text>
+          <Text style={styles.modeLabel}>Difficult · {levelCounts.again + levelCounts.hard}</Text>
           <Text style={styles.modeSub}>
-            {p.starred.length ? 'Practice the cards you starred' : 'Tap ☆ on any card to add it here'}
+            {levelCounts.again + levelCounts.hard
+              ? 'Cards you marked Again or Hard. They leave when you mark them Good or Easy.'
+              : 'Nothing difficult right now ✓'}
           </Text>
         </View>
-        {p.starred.length ? <Text style={styles.chev}>›</Text> : null}
+        <Text style={styles.chev}>›</Text>
       </Pressable>
 
       {/* Decks */}
