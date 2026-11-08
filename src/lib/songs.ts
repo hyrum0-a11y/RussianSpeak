@@ -87,12 +87,23 @@ export type LyricsMatch = {
   plainLyrics: string | null;
 };
 
-export async function searchLyrics(q: string): Promise<LyricsMatch[]> {
+/** Look up one song by artist and title; timed lyrics first. */
+export async function findSong(artist: string, track: string): Promise<LyricsMatch[]> {
+  const res = await fetch(
+    `https://lrclib.net/api/search?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(track)}`,
+    { headers: { 'Lrclib-Client': 'RussianSpeak (https://github.com/hyrum0-a11y/RussianSpeak)' } },
+  );
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const all = ((await res.json()) as LyricsMatch[]).filter((m) => m.syncedLyrics || m.plainLyrics);
+  return all.sort((a, b) => Number(!!b.syncedLyrics) - Number(!!a.syncedLyrics));
+}
+
+export async function searchLyrics(q: string, limit = 20): Promise<LyricsMatch[]> {
   const res = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`, {
     headers: { 'Lrclib-Client': 'RussianSpeak (https://github.com/hyrum0-a11y/RussianSpeak)' },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const all = ((await res.json()) as LyricsMatch[]).filter((m) => m.syncedLyrics || m.plainLyrics);
   // Timed lyrics first.
-  return all.sort((a, b) => Number(!!b.syncedLyrics) - Number(!!a.syncedLyrics)).slice(0, 20);
+  return all.sort((a, b) => Number(!!b.syncedLyrics) - Number(!!a.syncedLyrics)).slice(0, limit);
 }

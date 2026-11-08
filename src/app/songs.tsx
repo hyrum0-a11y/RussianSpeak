@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, AppState, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { addSong, keepFile, removeSong, searchFromFileName, useSongs, youtubeId, type Lyrics } from '../lib/songs';
@@ -13,8 +14,8 @@ export default function Songs() {
   return (
     <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
       <Text style={styles.intro}>
-        Sing along to songs you like. Add a YouTube video or an audio file from your phone. The lyrics light up as
-        they're sung, and you can slow the song down.
+        Sing along to Russian songs. Find a song, add its YouTube video (or a file on your phone), and the lyrics light
+        up as they're sung. Slow it down anytime.
       </Text>
 
       {adding ? (
@@ -58,28 +59,43 @@ export default function Songs() {
 }
 
 function AddSong({ onDone }: { onDone: (id?: string) => void }) {
-  const [kind, setKind] = useState<'youtube' | 'file'>('youtube');
+  const [lyrics, setLyrics] = useState<Lyrics | null>(null);
   const [link, setLink] = useState('');
   const [file, setFile] = useState<{ uri: string; name: string } | null>(null);
-  const [step, setStep] = useState<'source' | 'lyrics'>('source');
   const [saving, setSaving] = useState(false);
   const vid = youtubeId(link);
-  const ready = kind === 'youtube' ? !!vid : !!file;
+  const linkRef = useRef(link);
+  linkRef.current = link;
+
+  // Coming back from YouTube with a copied link: fill it in automatically.
+  useEffect(() => {
+    if (!lyrics) return;
+    const sub = AppState.addEventListener('change', async (st) => {
+      if (st !== 'active' || youtubeId(linkRef.current)) return;
+      const text = await Clipboard.getStringAsync().catch(() => '');
+      if (youtubeId(text)) {
+        setLink(text);
+        setFile(null);
+      }
+    });
+    return () => sub.remove();
+  }, [lyrics]);
 
   async function pick() {
     const res = await DocumentPicker.getDocumentAsync({ type: 'audio/*', copyToCacheDirectory: true });
     if (res.canceled || !res.assets?.[0]) return;
     setFile({ uri: res.assets[0].uri, name: res.assets[0].name });
+    setLink('');
   }
 
-  async function save(lyrics: Lyrics) {
+  async function save() {
+    if (!lyrics) return;
     setSaving(true);
     try {
-      const source =
-        kind === 'youtube'
-          ? { kind: 'youtube' as const, videoId: vid! }
-          : { kind: 'file' as const, uri: await keepFile(file!.uri, file!.name) };
-      const title = lyrics.label === 'Pasted lyrics' ? (file ? searchFromFileName(file.name) : 'Song') : lyrics.label;
+      const source = file
+        ? { kind: 'file' as const, uri: await keepFile(file.uri, file.name) }
+        : { kind: 'youtube' as const, videoId: vid! };
+      const title = lyrics.label === 'Pasted lyrics' ? (file ? searchFromFileName(file.name) : 'My song') : lyrics.label;
       const s = await addSong(title, source, lyrics);
       onDone(s.id);
     } catch (e) {
@@ -88,47 +104,52 @@ function AddSong({ onDone }: { onDone: (id?: string) => void }) {
     }
   }
 
-  if (step === 'lyrics') {
+  if (!lyrics) {
     return (
       <Card style={{ gap: 10 }}>
-        <Text style={styles.formTitle}>{saving ? 'Saving…' : 'Lyrics'}</Text>
-        <LyricsFinder initialQuery={file ? searchFromFileName(file.name) : ''} onPick={save} />
+        <Text style={styles.formTitle}>1. Find a song</Text>
+        <LyricsFinder initialQuery="" browse onPick={setLyrics} />
         <Button label="Cancel" variant="outline" onPress={() => onDone()} style={{ flex: 0 }} />
       </Card>
     );
   }
 
+  const ytSearch = lyrics.label === 'Pasted lyrics' ? '' : lyrics.label;
   return (
     <Card style={{ gap: 10 }}>
-      <Text style={styles.formTitle}>New song</Text>
-      <View style={styles.tabs}>
-        {(['youtube', 'file'] as const).map((k) => (
-          <Pressable key={k} onPress={() => setKind(k)} style={[styles.chip, kind === k && styles.chipOn]}>
-            <Text style={[styles.chipText, kind === k && styles.chipTextOn]}>
-              {k === 'youtube' ? '▶️ YouTube link' : '📂 File on phone'}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-      {kind === 'youtube' ? (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Paste a YouTube link"
-            value={link}
-            onChangeText={setLink}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Text style={styles.help}>In YouTube, tap Share → Copy link, then paste it here.</Text>
-          {link && !vid ? <Text style={styles.error}>That doesn't look like a YouTube link.</Text> : null}
-        </>
-      ) : (
-        <Button label={file ? `🎵 ${file.name}` : 'Choose audio file'} variant="outline" onPress={pick} style={{ flex: 0 }} />
-      )}
+      <Text style={styles.formTitle}>2. Add the music</Text>
+      <Text style={styles.songName}>🎵 {lyrics.label}</Text>
+      <Button
+        label="▶️ Find it on YouTube"
+        color={colors.again}
+        onPress={() =>
+          Linking.openURL(`https://www.youtube.com/results?search_query=${encodeURIComponent(ytSearch || 'русские песни')}`)
+        }
+        style={{ flex: 0 }}
+      />
+      <Text style={styles.help}>Pick a video, tap Share → Copy link, then come back here. The link fills in by itself.</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="…or paste a YouTube link"
+        value={link}
+        onChangeText={(t) => {
+          setLink(t);
+          if (t) setFile(null);
+        }}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+      {link && !vid ? <Text style={styles.error}>That doesn't look like a YouTube link.</Text> : null}
+      {vid ? <Text style={styles.ok}>✓ YouTube video ready</Text> : null}
+      <Button
+        label={file ? `📂 ${file.name}` : '📂 Or use an audio file on my phone'}
+        variant="outline"
+        onPress={pick}
+        style={{ flex: 0 }}
+      />
       <Row>
-        <Button label="Cancel" variant="outline" onPress={() => onDone()} />
-        <Button label="Next: lyrics" disabled={!ready} onPress={() => setStep('lyrics')} />
+        <Button label="Back" variant="outline" onPress={() => setLyrics(null)} />
+        <Button label={saving ? 'Saving…' : 'Save song'} disabled={!(vid || file) || saving} onPress={save} />
       </Row>
     </Card>
   );
@@ -152,11 +173,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 17, fontWeight: '600', color: colors.text },
   meta: { color: colors.muted, fontSize: 13, marginTop: 2 },
   formTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
-  tabs: { flexDirection: 'row', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
-  chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { color: colors.text },
-  chipTextOn: { color: colors.primaryText, fontWeight: '600' },
+  songName: { fontSize: 16, fontWeight: '600', color: colors.primary },
+  ok: { color: colors.good, fontWeight: '600' },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
