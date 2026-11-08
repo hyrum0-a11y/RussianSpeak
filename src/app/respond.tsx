@@ -73,7 +73,7 @@ export default function Respond() {
           </Pressable>
         )}
         <Row>
-          <Button label="🔊 Ask again" variant="outline" onPress={() => speakRu(current.ru, rate)} />
+          <Button label="🔊 Repeat" variant="outline" onPress={() => speakRu(current.ru, rate)} />
           <Button label="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
         </Row>
         {current.hint ? <Text style={styles.hint}>💡 Grammar: {current.hint}</Text> : null}
@@ -94,9 +94,9 @@ export default function Respond() {
           ))}
           <Text style={styles.question}>How did your answer go?</Text>
           <Row>
-            <Button label="Needs work" color={colors.again} onPress={() => grade('again')} />
-            <Button label="Okay" color={colors.good} onPress={() => grade('good')} />
-            <Button label="Nailed it" color={colors.easy} onPress={() => grade('easy')} />
+            <Button label="Hard" color={colors.hard} onPress={() => grade('hard')} />
+            <Button label="Good" color={colors.good} onPress={() => grade('good')} />
+            <Button label="Easy" color={colors.easy} onPress={() => grade('easy')} />
           </Row>
         </>
       ) : (

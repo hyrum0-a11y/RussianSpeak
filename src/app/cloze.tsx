@@ -102,7 +102,7 @@ export default function Cloze() {
             {checked ? 'Пра́вильно! ✓' : `You wrote: ${typed || '—'}`}
           </Text>
           <Row>
-            <Button label="🔊 Again" variant="outline" onPress={() => speakRu(current.phrase.ru, rate)} />
+            <Button label="🔊 Replay" variant="outline" onPress={() => speakRu(current.phrase.ru, rate)} />
             <Button label="Next →" onPress={next} />
           </Row>
         </>
