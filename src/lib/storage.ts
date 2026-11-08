@@ -20,6 +20,8 @@ export type Progress = {
   cards: Record<string, CardState>;
   prompts: Record<string, CardState>;
   custom: CustomPhrase[];
+  /** Phrase ids you starred to work on. */
+  starred: string[];
   newIntroduced: Partial<Record<Deck, DayCount>>;
   streak: { lastDay: string; days: number };
   settings: Settings;
@@ -29,6 +31,7 @@ export const DEFAULT_PROGRESS: Progress = {
   cards: {},
   prompts: {},
   custom: [],
+  starred: [],
   newIntroduced: {},
   streak: { lastDay: '', days: 0 },
   settings: { newPerDay: 10, speechRate: 0.9, front: 'ru', showPromptText: true },
@@ -110,8 +113,15 @@ export async function removeCustomPhrase(ru: string) {
   });
 }
 
+export async function toggleStar(id: string) {
+  await updateProgress((p) => ({
+    ...p,
+    starred: p.starred.includes(id) ? p.starred.filter((x) => x !== id) : [...p.starred, id],
+  }));
+}
+
 export async function resetProgress(): Promise<void> {
-  await updateProgress((p) => ({ ...DEFAULT_PROGRESS, settings: p.settings, custom: p.custom }));
+  await updateProgress((p) => ({ ...DEFAULT_PROGRESS, settings: p.settings, custom: p.custom, starred: p.starred }));
 }
 
 export function useProgress(): [Progress | null, typeof updateProgress] {

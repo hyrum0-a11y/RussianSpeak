@@ -8,6 +8,7 @@ export type CardState = {
   ease: number; // multiplier, starts at 2.5
   due: number; // epoch ms
   lapses: number;
+  last?: Grade; // the most recent grade you gave
 };
 
 export const DAY = 24 * 60 * 60 * 1000;
@@ -27,6 +28,7 @@ export function schedule(card: CardState, grade: Grade, now: number): CardState 
       ease: Math.max(1.3, ease - 0.2),
       due: now + 10 * MIN,
       lapses: lapses + 1,
+      last: 'again',
     };
   }
 
@@ -42,7 +44,7 @@ export function schedule(card: CardState, grade: Grade, now: number): CardState 
     interval = Math.max(interval + 1, Math.round(interval * mult));
   }
 
-  return { reps: reps + 1, interval, ease, due: now + interval * DAY, lapses };
+  return { reps: reps + 1, interval, ease, due: now + interval * DAY, lapses, last: grade };
 }
 
 /** Human-friendly preview of when a grade would schedule the card next. */
@@ -66,4 +68,13 @@ export function buildQueue(
     .sort((a, b) => states[a].due - states[b].due);
   const fresh = ids.filter((id) => !states[id]).slice(0, Math.max(0, newLimit));
   return [...due, ...fresh];
+}
+
+/** How well you know a card: your last grade, or a guess from its history for older cards. */
+export function gradeOf(card: CardState): Grade {
+  if (card.last) return card.last;
+  if (card.reps === 0) return 'again';
+  if (card.ease < 2.4) return 'hard';
+  if (card.ease > 2.6) return 'easy';
+  return 'good';
 }

@@ -3,8 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { allPhrases, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
-import { buildQueue, newCard, previewInterval, schedule, type CardState, type Grade } from '../lib/srs';
-import { countNewIntroduced, loadProgress, newLeftToday, touchStreak, updateProgress, useProgress } from '../lib/storage';
+import { buildQueue, gradeOf, newCard, previewInterval, schedule, type CardState, type Grade } from '../lib/srs';
+import { countNewIntroduced, loadProgress, newLeftToday, toggleStar, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
 import { SpeechCheck } from '../components/SpeechCheck';
@@ -19,16 +19,25 @@ const GRADES: { grade: Grade; label: string; color: string }[] = [
 ];
 
 export default function Review() {
-  const params = useLocalSearchParams<{ deck?: string; mode?: string; id?: string }>();
+  const params = useLocalSearchParams<{ deck?: string; mode?: string; id?: string; level?: string; starred?: string }>();
+  // "level" = practice cards by your last grade (e.g. "again,hard"). "starred" = your Working on list.
+  const levels = params.level ? (params.level.split(',') as Grade[]) : null;
+  const starredOnly = params.starred === '1';
   // "id" = one card opened from a deck page. It counts as a real review if it's new or due.
   const single = params.id;
   const [notDue, setNotDue] = useState(false);
   // "practice" = go back over cards you've already learned, without changing their schedule.
-  const practice = params.mode === 'practice' || notDue;
+  const practice = params.mode === 'practice' || notDue || !!levels || starredOnly;
   // "all" = today's review across every deck.
   const deck: Deck | 'all' =
     params.deck === 'all' ? 'all' : DECKS.some((d) => d.id === params.deck) ? (params.deck as Deck) : 'everyday';
-  const deckTitle = deck === 'all' ? "Today's review" : DECKS.find((d) => d.id === deck)!.title;
+  const deckTitle = starredOnly
+    ? '★ Working on'
+    : levels
+      ? `${levels.map((l) => GRADES.find((g) => g.grade === l)?.label).join(' + ')} cards`
+      : deck === 'all'
+        ? "Today's review"
+        : DECKS.find((d) => d.id === deck)!.title;
 
   const [p] = useProgress();
   const [queue, setQueue] = useState<string[] | null>(null);
@@ -42,7 +51,12 @@ export default function Review() {
     loadProgress().then((prog) => {
       const decks = deck === 'all' ? DECKS.map((d) => d.id) : [deck];
       const now = Date.now();
-      if (single) {
+      if (starredOnly) {
+        setQueue([...prog.starred].sort(() => Math.random() - 0.5));
+      } else if (levels) {
+        const ids = DECKS.flatMap((d) => phrasesIn(d.id, prog.custom).map((x) => x.id));
+        setQueue(ids.filter((id) => prog.cards[id] && levels.includes(gradeOf(prog.cards[id]))).sort(() => Math.random() - 0.5));
+      } else if (single) {
         const c = prog.cards[single];
         setNotDue(!!c && c.due > now);
         setQueue([single]);
@@ -59,20 +73,20 @@ export default function Review() {
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deck, params.mode, single]);
+  }, [deck, params.mode, single, params.level, starredOnly]);
 
   const custom = p?.custom;
   const byId = useMemo(() => new Map(allPhrases(custom).map((x) => [x.id, x])), [custom]);
   const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue, byId]);
 
   if (!p || !queue) return null;
-  const title = <Stack.Screen options={{ title: practice ? `Practice: ${deckTitle}` : deckTitle }} />;
+  const title = <Stack.Screen options={{ title: practice && !levels && !starredOnly ? `Practice: ${deckTitle}` : deckTitle }} />;
 
   /** Step back to the previous card and undo its grade so you can redo it. */
   async function goBack() {
     const last = history[history.length - 1];
     if (!last) return;
-    if (!practice) {
+    {
       await updateProgress((prog) => {
         const cards = { ...prog.cards };
         if (last.before) cards[last.id] = last.before;
@@ -120,12 +134,20 @@ export default function Review() {
   const state = p.cards[current.id] ?? newCard(Date.now());
   const isNew = !p.cards[current.id];
   const ruFirst = p.settings.front === 'ru';
+  const starred = p.starred.includes(current.id);
   // Russian-first cards show everything at once. English-first keeps the Russian hidden until you've tried.
   const open = ruFirst || revealed;
 
   async function grade(g: Grade) {
     if (!current) return;
-    if (!practice) {
+    if (practice) {
+      // Practice leaves the schedule alone but remembers how well you knew it.
+      await updateProgress((prog) => {
+        const c = prog.cards[current.id];
+        const next = c ? { ...c, last: g } : schedule(newCard(Date.now()), g, Date.now());
+        return { ...prog, cards: { ...prog.cards, [current.id]: next } };
+      });
+    } else {
       const next = schedule(state, g, Date.now());
       await updateProgress((prog) => {
         const counted = isNew ? countNewIntroduced(prog, current.deck) : prog;
@@ -157,6 +179,14 @@ export default function Review() {
       </Text>
 
       <Card style={styles.card}>
+        <Pressable
+          onPress={() => toggleStar(current.id)}
+          hitSlop={10}
+          style={styles.star}
+          accessibilityLabel={starred ? 'Remove from Working on' : 'Add to Working on'}
+        >
+          <Text style={[styles.starText, starred && { color: '#E0A800' }]}>{starred ? '★' : '☆'}</Text>
+        </Pressable>
         {ruFirst ? ru : <Text style={styles.en}>{current.en}</Text>}
         {open ? (
           <>
@@ -205,6 +235,8 @@ export default function Review() {
 const styles = StyleSheet.create({
   wrap: { padding: 16, gap: 14 },
   progress: { color: colors.muted, textAlign: 'center' },
+  star: { position: 'absolute', top: 8, right: 10, zIndex: 1, padding: 4 },
+  starText: { fontSize: 26, color: colors.muted },
   card: { minHeight: 200, justifyContent: 'center', gap: 12 },
   en: { fontSize: 20, textAlign: 'center', color: colors.text },
   ru: { fontSize: 28, fontWeight: '600', textAlign: 'center', color: colors.primary },
