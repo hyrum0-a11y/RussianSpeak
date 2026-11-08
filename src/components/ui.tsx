@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, ToastAndroid, View, type TextStyle, type ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
 
 export const colors = {
@@ -16,8 +16,25 @@ export const colors = {
   record: '#B03A2E',
 };
 
+/** Show the English for a Russian label (press and hold anything to see it). */
+export function hint(en?: string) {
+  if (!en) return;
+  if (Platform.OS === 'android') ToastAndroid.show(en, ToastAndroid.SHORT);
+  else Alert.alert(en);
+}
+
+/** Russian text that shows its English when you press and hold it. */
+export function T({ en, style, children, numberOfLines }: { en?: string; style?: TextStyle | TextStyle[]; children: ReactNode; numberOfLines?: number }) {
+  return (
+    <Text style={style} numberOfLines={numberOfLines} onLongPress={en ? () => hint(en) : undefined} suppressHighlighting>
+      {children}
+    </Text>
+  );
+}
+
 export function Button({
   label,
+  en,
   onPress,
   color = colors.primary,
   variant = 'solid',
@@ -26,6 +43,8 @@ export function Button({
   style,
 }: {
   label: string;
+  /** English shown on press-and-hold. */
+  en?: string;
   onPress: () => void;
   color?: string;
   variant?: 'solid' | 'outline';
@@ -37,6 +56,7 @@ export function Button({
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={en ? () => hint(en) : undefined}
       disabled={disabled}
       accessibilityRole="button"
       style={({ pressed }) => [

@@ -4,7 +4,7 @@ import { getRussianVoices, setPreferredVoice, speakRu } from '../lib/speech';
 import { pickRussianVoice, type VoiceInfo } from '../lib/speechText';
 import { resetProgress, useProgress } from '../lib/storage';
 import { BUILD_NUMBER } from '../lib/update';
-import { Button, Card, colors, Row } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 const RATES = [0.7, 0.9, 1.0];
 const NEW_PER_DAY = [5, 10, 20];
@@ -21,12 +21,12 @@ export default function Settings() {
   return (
     <ScrollView contentContainerStyle={styles.wrap}>
       <Card style={styles.card}>
-        <Text style={styles.h}>Speech speed</Text>
+        <T style={styles.h} en="Speech speed">Скорость речи</T>
         <Row>
           {RATES.map((r) => (
             <Button
               key={r}
-              label={r === 1 ? 'Normal' : `${r}×`}
+              label={r === 1 ? 'Обычная' : `${r}×`}
               variant={s.speechRate === r ? 'solid' : 'outline'}
               onPress={() => {
                 update((prog) => ({ ...prog, settings: { ...prog.settings, speechRate: r } }));
@@ -38,16 +38,16 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={styles.h}>Russian voice</Text>
+        <T style={styles.h} en="Russian voice">Русский голос</T>
         {voices === null ? null : voices.length === 0 ? (
           <Text style={styles.body}>
-            No Russian voice is installed, so your phone reads Cyrillic with the wrong voice. Open Android
-            Settings → search "Text-to-speech" → Preferred engine (Speech Services by Google) → Install voice
-            data → Русский. Then come back here.
+            Русский голос не установлен, поэтому телефон читает кириллицу не тем голосом. Откройте настройки
+            Android → найдите «Text-to-speech» → Preferred engine (Speech Services by Google) → Install voice
+            data → Русский. Потом вернитесь сюда.
           </Text>
         ) : (
           <>
-            <Text style={styles.body}>Tap a voice to hear it. "on device" voices work offline and are most reliable.</Text>
+            <Text style={styles.body}>Нажмите на голос, чтобы его послушать. Голоса «on device» работают без интернета и надёжнее всего.</Text>
             {voices.map((v) => {
               const active = pickRussianVoice(voices, s.voiceId)?.identifier === v.identifier;
               const label = /local/i.test(v.identifier) ? 'on device' : /network/i.test(v.identifier) ? 'needs internet' : '';
@@ -71,7 +71,7 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={styles.h}>Phrase cards show first</Text>
+        <T style={styles.h} en="Phrase cards show first">Что показывать первым</T>
         <Row>
           {(['ru', 'en'] as const).map((f) => (
             <Button
@@ -86,12 +86,13 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={styles.h}>Prompt questions</Text>
+        <T style={styles.h} en="Prompt questions">Вопросы</T>
         <Row>
           {[true, false].map((show) => (
             <Button
               key={String(show)}
-              label={show ? 'Show Cyrillic' : 'Listen only'}
+              label={show ? 'Показывать текст' : 'Только на слух'}
+              en={show ? 'Show Cyrillic' : 'Listen only'}
               variant={s.showPromptText === show ? 'solid' : 'outline'}
               onPress={() => update((prog) => ({ ...prog, settings: { ...prog.settings, showPromptText: show } }))}
             />
@@ -100,7 +101,7 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={styles.h}>New phrases per day (per deck)</Text>
+        <T style={styles.h} en="New phrases per day (per deck)">Новых фраз в день (на колоду)</T>
         <Row>
           {NEW_PER_DAY.map((n) => (
             <Button
@@ -114,17 +115,17 @@ export default function Settings() {
       </Card>
 
       <Card style={styles.card}>
-        <Text style={styles.h}>Progress</Text>
-        <Text style={styles.body}>Your progress is saved only on this phone. App build: {BUILD_NUMBER || 'dev'}.</Text>
+        <T style={styles.h} en="Progress">Прогресс</T>
+        <Text style={styles.body}>Прогресс хранится только на этом телефоне. Сборка: {BUILD_NUMBER || 'dev'}.</Text>
         <Button
-          label="Reset all progress"
+          label="Сбросить весь прогресс" en="Reset all progress"
           color={colors.again}
           variant="outline"
           style={{ flex: 0 }}
           onPress={() =>
-            Alert.alert('Reset progress?', 'This erases all review history on this phone.', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Reset', style: 'destructive', onPress: () => resetProgress() },
+            Alert.alert('Сбросить прогресс?', 'Вся история повторений на этом телефоне будет удалена.', [
+              { text: 'Отмена', style: 'cancel' },
+              { text: 'Сбросить', style: 'destructive', onPress: () => resetProgress() },
             ])
           }
         />

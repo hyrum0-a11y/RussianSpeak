@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { findSong, parseLrc, searchLyrics, type Lyrics, type LyricsMatch } from '../lib/songs';
 import { SONG_CATALOG } from '../data/songCatalog';
-import { Button, colors, Row } from './ui';
+import { Button, colors, Row, T } from './ui';
 
 /**
  * Find lyrics online (timed ones highlight as the song plays), or paste them.
@@ -35,7 +35,7 @@ export function LyricsFinder({
     try {
       setResults(await searchLyrics(query.trim()));
     } catch {
-      setError("Couldn't reach the lyrics library. Check your internet, or paste the lyrics.");
+      setError('Нет связи с библиотекой текстов. Проверьте интернет или вставьте текст сами.');
     } finally {
       setBusy(false);
     }
@@ -56,7 +56,7 @@ export function LyricsFinder({
         setResults(await searchLyrics(`${a} ${track}`));
       }
     } catch {
-      setError("Couldn't reach the lyrics library. Check your internet, or paste the lyrics.");
+      setError('Нет связи с библиотекой текстов. Проверьте интернет или вставьте текст сами.');
     } finally {
       setBusy(false);
     }
@@ -72,19 +72,19 @@ export function LyricsFinder({
       <View style={styles.wrap}>
         <TextInput
           style={[styles.input, { minHeight: 180 }]}
-          placeholder="Paste lyrics, one line per line"
+          placeholder="Вставьте текст, по строке на строку"
           value={pasted}
           onChangeText={setPasted}
           multiline
           textAlignVertical="top"
         />
-        <Text style={styles.help}>Pasted lyrics show without highlighting, unless they have [00:12.34] times.</Text>
+        <T style={styles.help} en="Pasted lyrics show without highlighting, unless they have [00:12.34] times.">Вставленный текст без подсветки, если в нём нет времени вида [00:12.34].</T>
         <Row>
-          <Button label="Back to search" variant="outline" onPress={() => setPasting(false)} />
+          <Button label="Назад к поиску" en="Back to search" variant="outline" onPress={() => setPasting(false)} />
           <Button
-            label="Use these"
+            label="Готово" en="Use these lyrics"
             disabled={!pasted.trim()}
-            onPress={() => onPick({ ...parseLrc(pasted), label: 'Pasted lyrics' })}
+            onPress={() => onPick({ ...parseLrc(pasted), label: 'Свой текст' })}
           />
         </Row>
       </View>
@@ -93,7 +93,7 @@ export function LyricsFinder({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{browse ? 'Search for a song, or pick an artist' : 'Find the lyrics (artist and song name)'}</Text>
+      <Text style={styles.label}>{browse ? 'Найдите песню или выберите исполнителя' : 'Найдите текст (исполнитель и название)'}</Text>
       <View style={styles.searchRow}>
         <TextInput
           style={[styles.input, { flex: 1 }]}
@@ -137,7 +137,7 @@ export function LyricsFinder({
       {busy ? <ActivityIndicator color={colors.primary} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {results && !busy && results.length === 0 ? (
-        <Text style={styles.help}>Nothing found. Try just the song name, or the artist in Latin letters.</Text>
+        <T style={styles.help} en="Nothing found. Try just the song name, or the artist in Latin letters.">Ничего не нашлось. Попробуйте только название песни или имя исполнителя латиницей.</T>
       ) : null}
       {results?.map((m) => (
         <Pressable
@@ -154,12 +154,12 @@ export function LyricsFinder({
             </Text>
           </View>
           <Text style={[styles.tag, m.syncedLyrics ? { color: colors.good } : null]}>
-            {m.syncedLyrics ? '⏱ highlights' : 'text only'}
+            {m.syncedLyrics ? '⏱ с подсветкой' : 'только текст'}
           </Text>
         </Pressable>
       ))}
       <Pressable onPress={() => setPasting(true)} hitSlop={8}>
-        <Text style={styles.link}>Paste lyrics instead</Text>
+        <T style={styles.link} en="Paste lyrics instead">Вставить текст самому</T>
       </Pressable>
     </View>
   );

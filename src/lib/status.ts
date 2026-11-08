@@ -3,6 +3,13 @@ import type { CardState } from './srs';
 export type Status = 'new' | 'due' | 'learning' | 'learned';
 
 export const STATUS_LABEL: Record<Status, string> = {
+  due: 'Пора',
+  learning: 'В процессе',
+  learned: 'Выучено',
+  new: 'Новое',
+};
+
+export const STATUS_EN: Record<Status, string> = {
   due: 'Due now',
   learning: 'Learning',
   learned: 'Learned',

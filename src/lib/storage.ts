@@ -12,6 +12,7 @@ export type Settings = {
   voiceId?: string; // chosen Russian TTS voice; undefined = pick automatically
   front: 'ru' | 'en'; // what the phrase card shows first
   showPromptText: boolean; // show the Cyrillic question text in prompt drills
+  holdHintDone?: boolean; // dismissed the "press and hold for English" tip
 };
 
 /** A word saved from the dictionary, with example sentences to learn it in context. */

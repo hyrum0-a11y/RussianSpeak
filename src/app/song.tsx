@@ -6,7 +6,7 @@ import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-au
 import YoutubePlayer, { type YoutubeIframeRef } from 'react-native-youtube-iframe';
 import { lineAt, loadSongs, saveSong, type Song } from '../lib/songs';
 import { LyricsFinder } from '../components/LyricsFinder';
-import { Button, colors, Row } from '../components/ui';
+import { Button, colors, Row, T } from '../components/ui';
 
 /** What the lyrics view needs from either player. */
 type Transport = {
@@ -118,8 +118,8 @@ function YouTubeSong({ song, videoId, onChange }: { song: Song; videoId: string;
         onError={(e: string) =>
           setError(
             e === 'embed_not_allowed' || e === '101' || e === '150'
-              ? "This video can't be played inside other apps. Try another upload of the song."
-              : `YouTube error: ${e}`,
+              ? 'Это видео нельзя смотреть в других приложениях. Попробуйте другую загрузку песни.'
+              : `Ошибка YouTube: ${e}`,
           )
         }
         initialPlayerParams={{ rel: false, iv_load_policy: 3 }}
@@ -170,12 +170,12 @@ function SingAlong({
                 onChange({ ...song, lines: l.lines, times: l.times, offset: 0 });
               }}
             />
-            <Button label="Cancel" variant="outline" onPress={() => setFinding(false)} style={{ flex: 0 }} />
+            <Button label="Отмена" en="Cancel" variant="outline" onPress={() => setFinding(false)} style={{ flex: 0 }} />
           </View>
         ) : (
           <>
             {!timed ? (
-              <Text style={styles.tip}>These lyrics aren't timed, so they won't highlight. Tap “Change lyrics” to look for timed ones.</Text>
+              <T style={styles.tip} en="These lyrics aren't timed, so they won't highlight. Tap “Change lyrics” to look for timed ones.">У этого текста нет разметки времени, поэтому подсветки не будет. Нажмите «Сменить текст», чтобы найти размеченный.</T>
             ) : null}
             {song.lines.map((line, i) => (
               <Pressable
@@ -193,7 +193,7 @@ function SingAlong({
               </Pressable>
             ))}
             <Pressable onPress={() => setFinding(true)} hitSlop={8}>
-              <Text style={styles.link}>🔎 Change lyrics</Text>
+              <T style={styles.link} en="🔎 Change lyrics">🔎 Сменить текст</T>
             </Pressable>
           </>
         )}
@@ -204,9 +204,9 @@ function SingAlong({
           {fmt(tr.t)} / {fmt(tr.duration)}
         </Text>
         <Row>
-          <Button label="⏪ 5s" variant="outline" onPress={() => tr.seek(tr.t - 5)} />
-          <Button label={tr.playing ? '⏸ Pause' : '▶ Play'} onPress={tr.toggle} />
-          <Button label="5s ⏩" variant="outline" onPress={() => tr.seek(tr.t + 5)} />
+          <Button label="⏪ 5 с" variant="outline" onPress={() => tr.seek(tr.t - 5)} />
+          <Button label={tr.playing ? '⏸ Пауза' : '▶ Играть'} onPress={tr.toggle} />
+          <Button label="5 с ⏩" variant="outline" onPress={() => tr.seek(tr.t + 5)} />
         </Row>
         <View style={styles.speeds}>
           {tr.speeds.map((s) => (
@@ -217,16 +217,16 @@ function SingAlong({
         </View>
         {timed ? (
           <View style={styles.offsetRow}>
-            <Text style={styles.offsetLabel}>Lyrics timing</Text>
+            <T style={styles.offsetLabel} en="Lyrics timing">Сдвиг текста</T>
             <Pressable onPress={() => nudge(-0.5)} style={styles.smallBtn} hitSlop={6}>
-              <Text style={styles.smallBtnText}>Earlier</Text>
+              <T style={styles.smallBtnText} en="Earlier">Раньше</T>
             </Pressable>
             <Text style={styles.offsetValue}>
               {song.offset > 0 ? '+' : ''}
               {song.offset.toFixed(1)}s
             </Text>
             <Pressable onPress={() => nudge(0.5)} style={styles.smallBtn} hitSlop={6}>
-              <Text style={styles.smallBtnText}>Later</Text>
+              <T style={styles.smallBtnText} en="Later">Позже</T>
             </Pressable>
           </View>
         ) : null}

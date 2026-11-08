@@ -34,7 +34,7 @@ export default function WordPractice() {
     return (
       <View style={styles.center}>
         <Text style={styles.done}>Отли́чно! 🎉</Text>
-        <Button label="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <Button label="Назад" en="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -82,9 +82,9 @@ export default function WordPractice() {
       </Card>
       {shown ? (
         <Row>
-          <Button label="Hard" color={colors.hard} onPress={() => grade('hard')} />
-          <Button label="Good" color={colors.good} onPress={() => grade('good')} />
-          <Button label="Easy" color={colors.easy} onPress={() => grade('easy')} />
+          <Button label="Учу" en="Still learning: I want to practice it" color={colors.hard} onPress={() => grade('hard')} />
+          <Button label="Почти" en="Almost: I got it, but not confident yet" color={colors.good} onPress={() => grade('good')} />
+          <Button label="Знаю" en="I know it: it's memorized" color={colors.easy} onPress={() => grade('easy')} />
         </Row>
       ) : (
         <Button label="Показать значение" onPress={() => setShown(true)} />

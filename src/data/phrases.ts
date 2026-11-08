@@ -14,13 +14,13 @@ export type Phrase = {
 
 export type Deck = 'everyday' | 'sayings' | 'movies' | 'poetry' | 'slang' | 'mine';
 
-export const DECKS: { id: Deck; title: string; blurb: string; icon: string }[] = [
-  { id: 'everyday', icon: '💬', title: 'Everyday phrases', blurb: 'Useful phrases for real conversations.' },
-  { id: 'sayings', icon: '📜', title: 'Famous sayings', blurb: 'Russian proverbs (пословицы) that people actually use.' },
-  { id: 'movies', icon: '🎬', title: 'Movie lines', blurb: 'Iconic lines from Soviet classics to newer Russian films.' },
-  { id: 'poetry', icon: '🪶', title: 'Poetry & folk songs', blurb: 'Famous lines from Pushkin, Lermontov, Yesenin and traditional songs.' },
-  { id: 'slang', icon: '😎', title: 'Slang', blurb: 'Casual words and phrases you hear every day but rarely in textbooks.' },
-  { id: 'mine', icon: '⭐', title: 'My phrases', blurb: 'Phrases you add yourself in the Phrase library.' },
+export const DECKS: { id: Deck; title: string; en: string; blurb: string; icon: string }[] = [
+  { id: 'everyday', icon: '💬', title: 'На каждый день', en: 'Everyday phrases', blurb: 'Полезные фразы для настоящих разговоров.' },
+  { id: 'sayings', icon: '📜', title: 'Пословицы', en: 'Famous sayings', blurb: 'Пословицы и поговорки, которые правда говорят.' },
+  { id: 'movies', icon: '🎬', title: 'Цитаты из фильмов', en: 'Movie lines', blurb: 'Знаменитые фразы из советской классики и новых фильмов.' },
+  { id: 'poetry', icon: '🪶', title: 'Стихи и песни', en: 'Poetry & folk songs', blurb: 'Строки Пушкина, Лермонтова, Есенина и народные песни.' },
+  { id: 'slang', icon: '😎', title: 'Сленг', en: 'Slang', blurb: 'Разговорные слова, которых нет в учебниках.' },
+  { id: 'mine', icon: '⭐', title: 'Мои фразы', en: 'My phrases', blurb: 'Фразы, которые вы добавили сами.' },
 ];
 
 export const CATEGORIES = [
@@ -41,6 +41,25 @@ export const CATEGORIES = [
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
+
+/** Russian names for categories (the English names stay as the stored keys). */
+export const CAT_RU: Record<string, string> = {
+  Basics: 'Основы',
+  'Small talk': 'Разговор',
+  'Getting by': 'Самое нужное',
+  'Food & drink': 'Еда и напитки',
+  Travel: 'Путешествия',
+  Shopping: 'Покупки',
+  Opinions: 'Мнения',
+  'Plans & time': 'Планы и время',
+  Feelings: 'Чувства',
+  Sayings: 'Пословицы',
+  'Movie lines': 'Фильмы',
+  'Poetry & songs': 'Стихи и песни',
+  Slang: 'Сленг',
+  'My phrases': 'Мои фразы',
+};
+export const catRu = (c: string) => CAT_RU[c] ?? c;
 
 const raw: [string, string, Category, string?][] = [
   // Basics

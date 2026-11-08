@@ -9,7 +9,7 @@ import {
   useAudioRecorderState,
 } from 'expo-audio';
 import { speakRu, stopSpeaking } from '../lib/speech';
-import { Button, colors, Row } from './ui';
+import { Button, colors, Row, T } from './ui';
 
 /**
  * Listen (normal / slow), record yourself, and play your recording back
@@ -43,7 +43,7 @@ export function SpeakControls({
   async function startRecording() {
     const perm = await requestRecordingPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Microphone needed', 'Allow microphone access to record your pronunciation.');
+      Alert.alert('Нужен микрофон', 'Разрешите доступ к микрофону, чтобы записать своё произношение.');
       return;
     }
     stopSpeaking();
@@ -82,22 +82,23 @@ export function SpeakControls({
     <View style={styles.wrap}>
       {showListen && (
         <Row>
-          <Button label="🔊 Listen" onPress={() => speakRu(text, rate)} />
-          <Button label="🐢 Slow" variant="outline" onPress={() => speakRu(text, Math.max(0.4, rate * 0.6))} />
+          <Button label="🔊 Слушать" en="Listen" onPress={() => speakRu(text, rate)} />
+          <Button label="🐢 Медленно" en="Slow" variant="outline" onPress={() => speakRu(text, Math.max(0.4, rate * 0.6))} />
         </Row>
       )}
       <Row>
         <Button
-          label={recording ? `⏹ Stop  ${(recState.durationMillis / 1000).toFixed(1)}s` : '🎙 Record me'}
+          label={recording ? `⏹ Стоп  ${(recState.durationMillis / 1000).toFixed(1)} с` : '🎙 Записать себя'}
+          en={recording ? 'Stop recording' : 'Record yourself'}
           color={colors.record}
           onPress={recording ? stopRecording : startRecording}
         />
-        <Button label="▶ My voice" variant="outline" color={colors.record} disabled={!myUri || recording} onPress={playMine} />
+        <Button label="▶ Мой голос" en="Play my recording" variant="outline" color={colors.record} disabled={!myUri || recording} onPress={playMine} />
       </Row>
       {myUri && !recording ? (
-        <Button label="🔁 Compare: native, then me" variant="outline" onPress={compare} />
+        <Button label="🔁 Сравнить" en="Compare: native voice, then mine" variant="outline" onPress={compare} />
       ) : (
-        <Text style={styles.tip}>Say it out loud, record, then compare with the native voice.</Text>
+        <T style={styles.tip} en="Say it out loud, record, then compare with the native voice.">Скажите вслух, запишите себя и сравните с носителем.</T>
       )}
     </View>
   );

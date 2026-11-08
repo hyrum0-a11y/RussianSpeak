@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
-import { DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
+import { catRu, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
 import { buildQueue } from '../lib/srs';
 import { STATUS_LABEL, statusOf, type Status } from '../lib/status';
 import { newLeftToday, useProgress } from '../lib/storage';
-import { Button, colors, Row } from '../components/ui';
+import { Button, colors, Row, T } from '../components/ui';
 import { ProgressBar } from '../components/ProgressBar';
 
 const STATUS_ORDER: Status[] = ['due', 'learning', 'new', 'learned'];
@@ -69,12 +69,13 @@ export default function DeckScreen() {
       </Text>
       <Row>
         <Button
-          label={queue.length ? `Review (${queue.length})` : 'Done for now ✓'}
+          label={queue.length ? `Учить (${queue.length})` : 'На сегодня всё ✓'}
+          en={queue.length ? `Review (${queue.length} cards)` : 'Done for now'}
           disabled={!queue.length}
           onPress={() => router.push({ pathname: '/review', params: { deck } })}
         />
         <Button
-          label="↩ Practice seen"
+          label="↩ Повторить изученное" en="↩ Practice seen"
           variant="outline"
           disabled={!seen}
           onPress={() => router.push({ pathname: '/review', params: { deck, mode: 'practice' } })}
@@ -85,7 +86,7 @@ export default function DeckScreen() {
           {(['type', 'status'] as const).map((g) => (
             <Pressable key={g} onPress={() => setGroupBy(g)} style={[styles.chip, groupBy === g && styles.chipOn]}>
               <Text style={[styles.chipText, groupBy === g && styles.chipTextOn]}>
-                {g === 'type' ? (byDecade ? 'By decade' : 'By type') : 'By progress'}
+                {g === 'type' ? (byDecade ? 'По десятилетиям' : 'По темам') : 'По прогрессу'}
               </Text>
             </Pressable>
           ))}
@@ -103,13 +104,13 @@ export default function DeckScreen() {
         contentContainerStyle={styles.wrap}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={header}
-        ListEmptyComponent={<Text style={styles.meta}>No phrases yet. Add some in the Phrase library.</Text>}
+        ListEmptyComponent={<T style={styles.meta} en="No phrases yet. Add some in the Phrase library.">Фраз пока нет. Добавьте их в разделе «Фразы».</T>}
         renderSectionHeader={({ section }) => {
           const sec = section as { title: string; data: Phrase[]; count?: number; collapsible?: boolean };
           if (!sec.collapsible) {
             return (
               <Text style={styles.section}>
-                {sec.title} <Text style={styles.count}>{sec.data.length}</Text>
+                {catRu(sec.title)} <Text style={styles.count}>{sec.data.length}</Text>
               </Text>
             );
           }
@@ -128,7 +129,7 @@ export default function DeckScreen() {
               accessibilityRole="button"
             >
               <Text style={styles.foldText}>
-                {isOpen ? '▾' : '▸'} {sec.title}
+                {isOpen ? '▾' : '▸'} {catRu(sec.title)}
               </Text>
               <Text style={styles.count}>{sec.count}</Text>
             </Pressable>
@@ -165,7 +166,7 @@ function decades(phrases: Phrase[]): [string, Phrase[]][] {
   const map = new Map<string, Phrase[]>();
   for (const x of phrases) {
     const y = /\((\d{4})/.exec(x.note ?? '')?.[1];
-    const key = y ? `${y.slice(0, 3)}0s` : 'Other';
+    const key = y ? `${y.slice(0, 3)}0-е` : 'Другое';
     map.set(key, [...(map.get(key) ?? []), x]);
   }
   return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));

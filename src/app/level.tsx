@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
-import { allPhrases, CATEGORIES, type Phrase } from '../data/phrases';
-import { gradeOf, type Level } from '../lib/srs';
+import { allPhrases, catRu, CATEGORIES, type Phrase } from '../data/phrases';
+import { gradeOf, LEVEL_NAMES, type Level } from '../lib/srs';
 import { useProgress } from '../lib/storage';
-import { Button, colors } from '../components/ui';
+import { Button, colors, T } from '../components/ui';
 
 const INFO: Record<Level, { title: string; color: string; hint: string }> = {
-  hard: { title: 'Hard', color: colors.hard, hint: 'Mark a phrase Good or Easy and it moves to that list.' },
-  good: { title: 'Good', color: colors.good, hint: 'Phrases you last marked Good.' },
-  easy: { title: 'Easy', color: colors.easy, hint: 'Phrases you last marked Easy.' },
+  hard: { title: LEVEL_NAMES.hard.ru, color: colors.hard, hint: 'Отметьте фразу «Почти» или «Знаю», и она перейдёт в тот список.' },
+  good: { title: LEVEL_NAMES.good.ru, color: colors.good, hint: 'Фразы, которые вы в последний раз отметили «Почти».' },
+  easy: { title: LEVEL_NAMES.easy.ru, color: colors.easy, hint: 'Фразы, которые вы в последний раз отметили «Знаю».' },
 };
 
 /** Every phrase whose last grade is this level, by category, collapsed at first. */
@@ -46,9 +46,10 @@ export default function LevelList() {
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <View style={{ gap: 10, marginBottom: 4 }}>
-            <Text style={styles.intro}>{info.hint} Tap a phrase to open its card.</Text>
+            <Text style={styles.intro}>{info.hint} Нажмите на фразу, чтобы открыть карточку.</Text>
             <Button
-              label={`Practice all ${items.length}`}
+              label={`Практика · ${items.length}`}
+              en={`Practice all ${items.length}`}
               color={info.color}
               disabled={!items.length}
               onPress={() => router.push({ pathname: '/review', params: { level } })}
@@ -56,11 +57,11 @@ export default function LevelList() {
             />
           </View>
         }
-        ListEmptyComponent={<Text style={styles.empty}>No phrases here yet.</Text>}
+        ListEmptyComponent={<T style={styles.empty} en="No phrases here yet.">Здесь пока нет фраз.</T>}
         renderSectionHeader={({ section }) => (
           <Pressable onPress={() => toggle(section.title)} style={styles.fold} accessibilityRole="button">
             <Text style={styles.foldText}>
-              {expanded.has(section.title) ? '▾' : '▸'} {section.title}
+              {expanded.has(section.title) ? '▾' : '▸'} {catRu(section.title)}
             </Text>
             <Text style={styles.count}>{section.count}</Text>
           </Pressable>

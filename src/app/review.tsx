@@ -2,20 +2,20 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
-import { allPhrases, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
-import { buildQueue, gradeOf, newCard, previewInterval, schedule, type CardState, type Grade } from '../lib/srs';
+import { allPhrases, catRu, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
+import { buildQueue, gradeOf, LEVEL_NAMES, newCard, previewInterval, schedule, type CardState, type Grade } from '../lib/srs';
 import { countNewIntroduced, loadProgress, newLeftToday, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
 import { SpeechCheck } from '../components/SpeechCheck';
 import { AskAI } from '../components/AskAI';
-import { Button, Card, colors, Row } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 
-const GRADES: { grade: Grade; label: string; color: string }[] = [
-  { grade: 'hard', label: 'Hard', color: colors.hard },
-  { grade: 'good', label: 'Good', color: colors.good },
-  { grade: 'easy', label: 'Easy', color: colors.easy },
+const GRADES: { grade: Grade; label: string; en: string; color: string }[] = [
+  { grade: 'hard', label: LEVEL_NAMES.hard.ru, en: LEVEL_NAMES.hard.en, color: colors.hard },
+  { grade: 'good', label: LEVEL_NAMES.good.ru, en: LEVEL_NAMES.good.en, color: colors.good },
+  { grade: 'easy', label: LEVEL_NAMES.easy.ru, en: LEVEL_NAMES.easy.en, color: colors.easy },
 ];
 
 export default function Review() {
@@ -31,9 +31,9 @@ export default function Review() {
   const deck: Deck | 'all' =
     params.deck === 'all' ? 'all' : DECKS.some((d) => d.id === params.deck) ? (params.deck as Deck) : 'everyday';
   const deckTitle = levels
-      ? `${levels.map((l) => GRADES.find((g) => g.grade === l)?.label).join(' + ')} cards`
+      ? levels.map((l) => GRADES.find((g) => g.grade === l)?.label).join(' + ')
       : deck === 'all'
-        ? "Today's review"
+        ? 'На сегодня'
         : DECKS.find((d) => d.id === deck)!.title;
 
   const [p] = useProgress();
@@ -75,7 +75,7 @@ export default function Review() {
   const current: Phrase | undefined = useMemo(() => (queue?.length ? byId.get(queue[0]) : undefined), [queue, byId]);
 
   if (!p || !queue) return null;
-  const title = <Stack.Screen options={{ title: practice && !levels ? `Practice: ${deckTitle}` : deckTitle }} />;
+  const title = <Stack.Screen options={{ title: practice && !levels ? `Практика: ${deckTitle}` : deckTitle }} />;
 
   /** Step back to the previous card and undo its grade so you can redo it. */
   async function goBack() {
@@ -107,21 +107,22 @@ export default function Review() {
         <Text style={styles.doneTitle}>Отли́чно! 🎉</Text>
         <Text style={styles.doneBody}>
           {doneCount
-            ? `You went through ${doneCount} cards.${practice ? '' : ' Come back later for more.'}`
-            : 'Nothing here yet. Learn a few cards first.'}
+            ? `Пройдено карточек: ${doneCount}.${practice ? '' : ' Возвращайтесь позже.'}`
+            : 'Здесь пока пусто.'}
         </Text>
         {history.length > 0 && (
-          <Button label="↩ Back to last card" variant="outline" onPress={goBack} style={{ flex: 0, alignSelf: 'stretch' }} />
+          <Button label="↩ К последней карточке" en="Back to last card" variant="outline" onPress={goBack} style={{ flex: 0, alignSelf: 'stretch' }} />
         )}
         {!practice && (
           <Button
-            label="Practice learned cards"
+            label="Повторить изученное"
+            en="Practice learned cards"
             variant="outline"
             onPress={() => router.replace({ pathname: '/review', params: { deck, mode: 'practice' } })}
             style={{ flex: 0, alignSelf: 'stretch' }}
           />
         )}
-        <Button label="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <Button label="Назад" en="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -168,8 +169,8 @@ export default function Review() {
     <ScrollView contentContainerStyle={styles.wrap}>
       {title}
       <Text style={styles.progress}>
-        {single ? '' : `${queue.length} left`}{isNew ? ' · NEW' : ''} · {current.cat}
-        {practice ? ' · practice (schedule unchanged)' : ''}
+        {single ? '' : `осталось ${queue.length}`}{isNew ? ' · НОВОЕ' : ''} · {catRu(current.cat)}
+        {practice ? ' · практика' : ''}
       </Text>
 
       <Card style={styles.card}>
@@ -185,7 +186,7 @@ export default function Review() {
             {tip}
           </>
         ) : (
-          <Text style={styles.hint}>Say it in Russian, out loud.</Text>
+          <T style={styles.hint} en="Say it in Russian, out loud.">Скажите это по-русски вслух.</T>
         )}
       </Card>
 
@@ -194,12 +195,13 @@ export default function Review() {
           <SpeakControls text={current.ru} rate={p.settings.speechRate} autoPlay={!ruFirst} />
           <SpeechCheck text={current.ru} />
           <AskAI text={current.ru} />
-          <Text style={styles.question}>How well did you know it?</Text>
+          <T style={styles.question} en="How well do you know it?">Как хорошо вы это знаете?</T>
           <Row>
-            {GRADES.map(({ grade: g, label, color }) => (
+            {GRADES.map(({ grade: g, label, en, color }) => (
               <Button
                 key={g}
                 label={label}
+                en={en}
                 sub={practice ? undefined : previewInterval(state, g, Date.now())}
                 color={color}
                 onPress={() => grade(g)}
@@ -208,11 +210,11 @@ export default function Review() {
           </Row>
         </>
       ) : (
-        <Button label="Show Russian" onPress={() => setRevealed(true)} />
+        <Button label="Показать по-русски" en="Show Russian" onPress={() => setRevealed(true)} />
       )}
       {history.length > 0 && (
         <Pressable onPress={goBack} hitSlop={8} accessibilityRole="button">
-          <Text style={styles.back}>↩ Previous card</Text>
+          <T style={styles.back} en="Previous card">↩ Предыдущая карточка</T>
         </Pressable>
       )}
     </ScrollView>
