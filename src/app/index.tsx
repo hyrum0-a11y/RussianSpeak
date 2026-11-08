@@ -5,12 +5,19 @@ import { router } from 'expo-router';
 import { allPhrases, DECKS, phrasesIn } from '../data/phrases';
 import { PROMPTS } from '../data/prompts';
 import { hasRussianVoice } from '../lib/speech';
-import { buildQueue } from '../lib/srs';
+import { buildQueue, gradeOf, type Grade } from '../lib/srs';
 import { statusOf } from '../lib/status';
 import { newLeftToday, useProgress, type Progress } from '../lib/storage';
 import { checkForUpdate, installUpdate, type Update } from '../lib/update';
 import { ProgressBar } from '../components/ProgressBar';
 import { Button, colors } from '../components/ui';
+
+const LEVELS: { grade: Grade; label: string; color: string }[] = [
+  { grade: 'again', label: 'Again', color: colors.again },
+  { grade: 'hard', label: 'Hard', color: colors.hard },
+  { grade: 'good', label: 'Good', color: colors.good },
+  { grade: 'easy', label: 'Easy', color: colors.easy },
+];
 
 export default function Home() {
   const [p] = useProgress();
@@ -30,7 +37,11 @@ export default function Home() {
   const all = allPhrases(p.custom);
   const learned = all.filter((x) => statusOf(p.cards[x.id], now) === 'learned').length;
   const deckStats = DECKS.map((d) => deckStat(d.id, p, now));
-  const dueToday = deckStats.reduce((n, s) => n + s.queue, 0);
+  const levelCounts = { again: 0, hard: 0, good: 0, easy: 0 };
+  for (const x of all) {
+    const c = p.cards[x.id];
+    if (c) levelCounts[gradeOf(c)]++;
+  }
   const promptsDue = buildQueue(PROMPTS.map((x) => x.id), p.prompts, now, 5).length;
 
   return (
@@ -64,14 +75,39 @@ export default function Home() {
             {learned} of {all.length} phrases learned
           </Text>
         </View>
-        <Pressable
-          onPress={() => router.push({ pathname: '/review', params: { deck: 'all' } })}
-          disabled={!dueToday}
-          style={({ pressed }) => [styles.heroBtn, (pressed || !dueToday) && { opacity: 0.8 }]}
-        >
-          <Text style={styles.heroBtnText}>{dueToday ? `Start today's review · ${dueToday}` : 'All caught up for today ✓'}</Text>
-        </Pressable>
+        <Text style={styles.heroAsk}>Practice cards you marked…</Text>
+        <View style={styles.levels}>
+          {LEVELS.map((l) => {
+            const n = levelCounts[l.grade];
+            return (
+              <Pressable
+                key={l.grade}
+                disabled={!n}
+                onPress={() => router.push({ pathname: '/review', params: { level: l.grade } })}
+                style={({ pressed }) => [styles.level, { backgroundColor: l.color }, (pressed || !n) && { opacity: n ? 0.8 : 0.4 }]}
+              >
+                <Text style={styles.levelLabel}>{l.label}</Text>
+                <Text style={styles.levelCount}>{n}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
+
+      <Pressable
+        onPress={() => router.push({ pathname: '/review', params: { starred: '1' } })}
+        disabled={!p.starred.length}
+        style={({ pressed }) => [styles.songs, pressed && styles.pressed, !p.starred.length && { opacity: 0.85 }]}
+      >
+        <Text style={[styles.modeIcon, { color: '#E0A800' }]}>★</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.modeLabel}>Working on · {p.starred.length}</Text>
+          <Text style={styles.modeSub}>
+            {p.starred.length ? 'Practice the cards you starred' : 'Tap ☆ on any card to add it here'}
+          </Text>
+        </View>
+        {p.starred.length ? <Text style={styles.chev}>›</Text> : null}
+      </Pressable>
 
       {/* Decks */}
       <Text style={styles.sectionTitle}>Decks</Text>
@@ -121,7 +157,8 @@ export default function Home() {
       </Pressable>
 
       <View style={styles.footer}>
-        <FooterLink label="📚 Phrase library" onPress={() => router.push('/phrases')} />
+        <FooterLink label="📚 Phrases" onPress={() => router.push('/phrases')} />
+        <FooterLink label="📖 Словарь" onPress={() => router.push('/dictionary')} />
         <FooterLink label="⚙️ Settings" onPress={() => router.push('/settings')} />
       </View>
     </ScrollView>
@@ -177,8 +214,11 @@ const styles = StyleSheet.create({
   heroTitle: { color: '#FFFFFF', fontSize: 32, fontWeight: '800', marginTop: -6 },
   heroProgress: { gap: 6 },
   heroMeta: { color: '#C9D6EA', fontSize: 13 },
-  heroBtn: { backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
-  heroBtnText: { color: colors.primary, fontSize: 16, fontWeight: '700' },
+  heroAsk: { color: '#FFFFFF', fontSize: 15, fontWeight: '600', marginBottom: -4 },
+  levels: { flexDirection: 'row', gap: 8 },
+  level: { flex: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  levelLabel: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  levelCount: { color: '#FFFFFF', fontSize: 20, fontWeight: '800' },
 
   sectionTitle: { fontSize: 13, fontWeight: '700', color: colors.muted, letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 6 },
 
@@ -226,7 +266,7 @@ const styles = StyleSheet.create({
   modeLabel: { fontWeight: '700', color: colors.text },
   modeSub: { color: colors.muted, fontSize: 12 },
 
-  footer: { flexDirection: 'row', justifyContent: 'center', gap: 28, marginTop: 8 },
+  footer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 20, marginTop: 8 },
   footerLink: { paddingVertical: 8 },
   footerText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
 
