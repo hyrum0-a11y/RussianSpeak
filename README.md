@@ -13,6 +13,7 @@ An Android-first Expo app for practicing spoken Russian: memorizing phrases, pro
 - **Speech check.** Say a phrase and Android's speech recognizer shows which words it understood. Russian offline recognition may need to be added in the Google app.
 - **Dictation.** Hear a phrase with no text, type it, and see a word-by-word comparison.
 - **Fill in the blank.** One word is removed from a phrase and you type it. Good for cases and verb endings.
+- **Sing along.** Add a song from your phone (your own audio file) and paste its lyrics. Play it at 0.5×–1.25× without changing the pitch. Tap "Sync lyrics" once and tap "Next line" as each line starts; after that the current line highlights and scrolls by itself, and you can tap a line to jump to it.
 - **Phrase library.** Browse by category and tap a phrase to hear it.
 - **Local progress.** Everything is saved on the phone (AsyncStorage). There is no account.
 
