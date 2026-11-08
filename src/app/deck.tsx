@@ -23,7 +23,7 @@ export default function DeckScreen() {
   const deck: Deck = info.id;
   const [p] = useProgress();
   const [groupBy, setGroupBy] = useState<'type' | 'status'>('type');
-  // Decade sections (movie lines) start collapsed.
+  // Groups start collapsed.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const now = Date.now();
@@ -38,20 +38,22 @@ export default function DeckScreen() {
   if (!p) return null;
   const cards = p.cards;
 
-  const sections =
+  // Every group is collapsible and starts collapsed.
+  const groups: [string, Phrase[]][] =
     mode === 'type' && byDecade
-      ? decades(phrases).map(([title, data]) => ({
-          title,
-          count: data.length,
-          data: expanded.has(title) ? data : [],
-          collapsible: true,
-        }))
+      ? decades(phrases)
       : mode === 'type'
-      ? categories.map((cat) => ({ title: cat, data: phrases.filter((x) => x.cat === cat) }))
-      : STATUS_ORDER.map((st) => ({
-          title: STATUS_LABEL[st],
-          data: phrases.filter((x) => statusOf(cards[x.id], now) === st),
-        })).filter((s) => s.data.length);
+        ? categories.map((cat) => [cat, phrases.filter((x) => x.cat === cat)])
+        : STATUS_ORDER.map((st): [string, Phrase[]] => [
+            STATUS_LABEL[st],
+            phrases.filter((x) => statusOf(cards[x.id], now) === st),
+          ]).filter(([, d]) => d.length);
+  const sections = groups.map(([title, data]) => ({
+    title,
+    count: data.length,
+    data: expanded.has(title) ? data : [],
+    collapsible: true,
+  }));
 
   const queue = buildQueue(phrases.map((x) => x.id), cards, now, newLeftToday(p, deck));
   const learned = phrases.filter((x) => statusOf(cards[x.id], now) === 'learned').length;
