@@ -70,10 +70,13 @@ export function buildQueue(
   return [...due, ...fresh];
 }
 
+/** Hard, Good or Easy. ("Again" from older versions counts as Hard.) */
+export type Level = 'hard' | 'good' | 'easy';
+
 /** How well you know a card: your last grade, or a guess from its history for older cards. */
-export function gradeOf(card: CardState): Grade {
-  if (card.last) return card.last;
-  if (card.reps === 0) return 'again';
+export function gradeOf(card: CardState): Level {
+  if (card.last) return card.last === 'again' ? 'hard' : card.last;
+  if (card.reps === 0) return 'hard';
   if (card.ease < 2.4) return 'hard';
   if (card.ease > 2.6) return 'easy';
   return 'good';

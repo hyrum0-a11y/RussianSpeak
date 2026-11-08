@@ -5,15 +5,14 @@ import { router } from 'expo-router';
 import { allPhrases, DECKS, phrasesIn } from '../data/phrases';
 import { PROMPTS } from '../data/prompts';
 import { hasRussianVoice } from '../lib/speech';
-import { buildQueue, gradeOf, type Grade } from '../lib/srs';
+import { buildQueue, gradeOf, type Level } from '../lib/srs';
 import { statusOf } from '../lib/status';
 import { newLeftToday, useProgress, type Progress } from '../lib/storage';
 import { checkForUpdate, installUpdate, type Update } from '../lib/update';
 import { ProgressBar } from '../components/ProgressBar';
 import { Button, colors } from '../components/ui';
 
-const LEVELS: { grade: Grade; label: string; color: string }[] = [
-  { grade: 'again', label: 'Again', color: colors.again },
+const LEVELS: { grade: Level; label: string; color: string }[] = [
   { grade: 'hard', label: 'Hard', color: colors.hard },
   { grade: 'good', label: 'Good', color: colors.good },
   { grade: 'easy', label: 'Easy', color: colors.easy },
@@ -37,7 +36,7 @@ export default function Home() {
   const all = allPhrases(p.custom);
   const learned = all.filter((x) => statusOf(p.cards[x.id], now) === 'learned').length;
   const deckStats = DECKS.map((d) => deckStat(d.id, p, now));
-  const levelCounts = { again: 0, hard: 0, good: 0, easy: 0 };
+  const levelCounts = { hard: 0, good: 0, easy: 0 };
   for (const x of all) {
     const c = p.cards[x.id];
     if (c) levelCounts[gradeOf(c)]++;
@@ -75,7 +74,7 @@ export default function Home() {
             {learned} of {all.length} phrases learned
           </Text>
         </View>
-        <Text style={styles.heroAsk}>Practice cards you marked…</Text>
+        <Text style={styles.heroAsk}>Cards you marked…</Text>
         <View style={styles.levels}>
           {LEVELS.map((l) => {
             const n = levelCounts[l.grade];
@@ -83,7 +82,7 @@ export default function Home() {
               <Pressable
                 key={l.grade}
                 disabled={!n}
-                onPress={() => router.push({ pathname: '/review', params: { level: l.grade } })}
+                onPress={() => router.push({ pathname: '/level', params: { grade: l.grade } })}
                 style={({ pressed }) => [styles.level, { backgroundColor: l.color }, (pressed || !n) && { opacity: n ? 0.8 : 0.4 }]}
               >
                 <Text style={styles.levelLabel}>{l.label}</Text>
@@ -94,18 +93,6 @@ export default function Home() {
         </View>
       </View>
 
-      <Pressable onPress={() => router.push('/difficult')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
-        <Text style={styles.modeIcon}>🧗</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.modeLabel}>Difficult · {levelCounts.again + levelCounts.hard}</Text>
-          <Text style={styles.modeSub}>
-            {levelCounts.again + levelCounts.hard
-              ? 'Cards you marked Again or Hard. They leave when you mark them Good or Easy.'
-              : 'Nothing difficult right now ✓'}
-          </Text>
-        </View>
-        <Text style={styles.chev}>›</Text>
-      </Pressable>
 
       {/* Decks */}
       <Text style={styles.sectionTitle}>Decks</Text>
