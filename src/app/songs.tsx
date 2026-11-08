@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
-import { addSong, removeSong, useSongs } from '../lib/songs';
+import { addSong, keepFile, removeSong, searchFromFileName, useSongs, youtubeId, type Lyrics } from '../lib/songs';
+import { LyricsFinder } from '../components/LyricsFinder';
 import { Button, Card, colors, Row } from '../components/ui';
 
 export default function Songs() {
@@ -12,8 +13,8 @@ export default function Songs() {
   return (
     <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
       <Text style={styles.intro}>
-        Sing along to songs you like. Pick an audio file from your phone, paste the lyrics, and play it slower while
-        the lyrics follow along.
+        Sing along to songs you like. Add a YouTube video or an audio file from your phone. The lyrics light up as
+        they're sung, and you can slow the song down.
       </Text>
 
       {adding ? (
@@ -29,55 +30,57 @@ export default function Songs() {
       )}
 
       {songs?.length === 0 && !adding ? <Text style={styles.empty}>No songs yet.</Text> : null}
-      {songs?.map((s) => {
-        const synced = s.times.filter((t) => t != null).length;
-        return (
-          <Pressable
-            key={s.id}
-            onPress={() => router.push({ pathname: '/song', params: { id: s.id } })}
-            onLongPress={() =>
-              Alert.alert('Delete song?', s.title, [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: () => removeSong(s.id).then(reload) },
-              ])
-            }
-            style={({ pressed }) => [styles.item, pressed && { opacity: 0.7 }]}
-          >
-            <Text style={styles.icon}>🎵</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.title}>{s.title}</Text>
-              <Text style={styles.meta}>
-                {s.lines.length} lines · {synced === s.lines.length && synced ? 'synced ✓' : synced ? `${synced} synced` : 'not synced yet'}
-              </Text>
-            </View>
-          </Pressable>
-        );
-      })}
+      {songs?.map((s) => (
+        <Pressable
+          key={s.id}
+          onPress={() => router.push({ pathname: '/song', params: { id: s.id } })}
+          onLongPress={() =>
+            Alert.alert('Delete song?', s.title, [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete', style: 'destructive', onPress: () => removeSong(s.id).then(reload) },
+            ])
+          }
+          style={({ pressed }) => [styles.item, pressed && { opacity: 0.7 }]}
+        >
+          <Text style={styles.icon}>{s.source.kind === 'youtube' ? '▶️' : '🎵'}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>{s.title}</Text>
+            <Text style={styles.meta}>
+              {s.source.kind === 'youtube' ? 'YouTube' : 'File'} ·{' '}
+              {s.times.some((t) => t != null) ? 'lyrics highlight' : 'lyrics only'}
+            </Text>
+          </View>
+        </Pressable>
+      ))}
       {songs?.length ? <Text style={styles.empty}>Long-press a song to delete it.</Text> : null}
     </ScrollView>
   );
 }
 
 function AddSong({ onDone }: { onDone: (id?: string) => void }) {
+  const [kind, setKind] = useState<'youtube' | 'file'>('youtube');
+  const [link, setLink] = useState('');
   const [file, setFile] = useState<{ uri: string; name: string } | null>(null);
-  const [title, setTitle] = useState('');
-  const [lyrics, setLyrics] = useState('');
+  const [step, setStep] = useState<'source' | 'lyrics'>('source');
   const [saving, setSaving] = useState(false);
-  const ok = !!file && lyrics.trim().length > 0 && !saving;
+  const vid = youtubeId(link);
+  const ready = kind === 'youtube' ? !!vid : !!file;
 
   async function pick() {
     const res = await DocumentPicker.getDocumentAsync({ type: 'audio/*', copyToCacheDirectory: true });
     if (res.canceled || !res.assets?.[0]) return;
-    const a = res.assets[0];
-    setFile({ uri: a.uri, name: a.name });
-    if (!title) setTitle(a.name.replace(/\.[a-z0-9]{2,5}$/i, ''));
+    setFile({ uri: res.assets[0].uri, name: res.assets[0].name });
   }
 
-  async function save() {
-    if (!file) return;
+  async function save(lyrics: Lyrics) {
     setSaving(true);
     try {
-      const s = await addSong(title, file.uri, file.name, lyrics);
+      const source =
+        kind === 'youtube'
+          ? { kind: 'youtube' as const, videoId: vid! }
+          : { kind: 'file' as const, uri: await keepFile(file!.uri, file!.name) };
+      const title = lyrics.label === 'Pasted lyrics' ? (file ? searchFromFileName(file.name) : 'Song') : lyrics.label;
+      const s = await addSong(title, source, lyrics);
       onDone(s.id);
     } catch (e) {
       setSaving(false);
@@ -85,22 +88,47 @@ function AddSong({ onDone }: { onDone: (id?: string) => void }) {
     }
   }
 
+  if (step === 'lyrics') {
+    return (
+      <Card style={{ gap: 10 }}>
+        <Text style={styles.formTitle}>{saving ? 'Saving…' : 'Lyrics'}</Text>
+        <LyricsFinder initialQuery={file ? searchFromFileName(file.name) : ''} onPick={save} />
+        <Button label="Cancel" variant="outline" onPress={() => onDone()} style={{ flex: 0 }} />
+      </Card>
+    );
+  }
+
   return (
     <Card style={{ gap: 10 }}>
       <Text style={styles.formTitle}>New song</Text>
-      <Button label={file ? `🎵 ${file.name}` : '📂 Choose audio file'} variant="outline" onPress={pick} style={{ flex: 0 }} />
-      <TextInput style={styles.input} placeholder="Title" value={title} onChangeText={setTitle} />
-      <TextInput
-        style={[styles.input, styles.lyrics]}
-        placeholder={'Paste the lyrics here, one line per line'}
-        value={lyrics}
-        onChangeText={setLyrics}
-        multiline
-        textAlignVertical="top"
-      />
+      <View style={styles.tabs}>
+        {(['youtube', 'file'] as const).map((k) => (
+          <Pressable key={k} onPress={() => setKind(k)} style={[styles.chip, kind === k && styles.chipOn]}>
+            <Text style={[styles.chipText, kind === k && styles.chipTextOn]}>
+              {k === 'youtube' ? '▶️ YouTube link' : '📂 File on phone'}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      {kind === 'youtube' ? (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Paste a YouTube link"
+            value={link}
+            onChangeText={setLink}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <Text style={styles.help}>In YouTube, tap Share → Copy link, then paste it here.</Text>
+          {link && !vid ? <Text style={styles.error}>That doesn't look like a YouTube link.</Text> : null}
+        </>
+      ) : (
+        <Button label={file ? `🎵 ${file.name}` : 'Choose audio file'} variant="outline" onPress={pick} style={{ flex: 0 }} />
+      )}
       <Row>
         <Button label="Cancel" variant="outline" onPress={() => onDone()} />
-        <Button label={saving ? 'Saving…' : 'Save'} disabled={!ok} onPress={save} />
+        <Button label="Next: lyrics" disabled={!ready} onPress={() => setStep('lyrics')} />
       </Row>
     </Card>
   );
@@ -124,6 +152,11 @@ const styles = StyleSheet.create({
   title: { fontSize: 17, fontWeight: '600', color: colors.text },
   meta: { color: colors.muted, fontSize: 13, marginTop: 2 },
   formTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  tabs: { flexDirection: 'row', gap: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
+  chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { color: colors.text },
+  chipTextOn: { color: colors.primaryText, fontWeight: '600' },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -134,5 +167,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.bg,
   },
-  lyrics: { minHeight: 180 },
+  help: { color: colors.muted, fontSize: 13 },
+  error: { color: colors.again },
 });

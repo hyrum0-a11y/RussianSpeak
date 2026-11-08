@@ -115,7 +115,7 @@ export default function Home() {
         <Text style={styles.modeIcon}>🎵</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.modeLabel}>Sing along</Text>
-          <Text style={styles.modeSub}>Your songs, slowed down, with lyrics</Text>
+          <Text style={styles.modeSub}>YouTube or your own files, lyrics light up</Text>
         </View>
         <Text style={styles.chev}>›</Text>
       </Pressable>

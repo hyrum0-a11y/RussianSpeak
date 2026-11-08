@@ -2,19 +2,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { splitLyrics } from './lyrics';
 
-export { lineAt, splitLyrics } from './lyrics';
+export { lineAt, parseLrc, searchFromFileName, splitLyrics, youtubeId } from './lyrics';
 
-/** A song you imported: your own audio file plus lyrics you pasted. */
+export type SongSource = { kind: 'file'; uri: string } | { kind: 'youtube'; videoId: string };
+
+/** A song you added: an audio file on your phone or a YouTube video, plus its lyrics. */
 export type Song = {
   id: string;
   title: string;
-  uri: string; // audio file copied into the app's storage
+  source: SongSource;
   lines: string[];
-  /** Seconds into the song where each line starts; null = not synced yet. */
+  /** Seconds into the song where each line starts; null = lyrics aren't timed. */
   times: (number | null)[];
+  /** Shift the lyrics earlier (−) or later (+) to match this recording. */
+  offset: number;
 };
+
+export type Lyrics = { lines: string[]; times: (number | null)[]; label: string };
 
 const KEY = 'russianspeak:songs:v1';
 
@@ -31,39 +36,33 @@ async function saveSongs(songs: Song[]) {
   await AsyncStorage.setItem(KEY, JSON.stringify(songs));
 }
 
-/** Copy the picked file into app storage so it survives the picker's cache being cleared. */
-export async function addSong(title: string, pickedUri: string, fileName: string, lyrics: string): Promise<Song> {
-  const id = `${Date.now()}`;
-  let uri = pickedUri;
-  if (FileSystem.documentDirectory) {
-    const dir = `${FileSystem.documentDirectory}songs/`;
-    await FileSystem.makeDirectoryAsync(dir, { intermediates: true }).catch(() => {});
-    const ext = /\.[a-z0-9]{2,5}$/i.exec(fileName)?.[0] ?? '.mp3';
-    uri = `${dir}${id}${ext}`;
-    await FileSystem.copyAsync({ from: pickedUri, to: uri });
-  }
-  const lines = splitLyrics(lyrics);
-  const song: Song = { id, title: title.trim() || fileName, uri, lines, times: lines.map(() => null) };
+/** Copy a picked file into app storage so it survives the picker's cache being cleared. */
+export async function keepFile(pickedUri: string, fileName: string): Promise<string> {
+  if (!FileSystem.documentDirectory) return pickedUri;
+  const dir = `${FileSystem.documentDirectory}songs/`;
+  await FileSystem.makeDirectoryAsync(dir, { intermediates: true }).catch(() => {});
+  const ext = /\.[a-z0-9]{2,5}$/i.exec(fileName)?.[0] ?? '.mp3';
+  const uri = `${dir}${Date.now()}${ext}`;
+  await FileSystem.copyAsync({ from: pickedUri, to: uri });
+  return uri;
+}
+
+export async function addSong(title: string, source: SongSource, lyrics: Lyrics): Promise<Song> {
+  const song: Song = { id: `${Date.now()}`, title, source, lines: lyrics.lines, times: lyrics.times, offset: 0 };
   await saveSongs([...(await loadSongs()), song]);
   return song;
 }
 
-export async function updateSong(id: string, change: (s: Song) => Song) {
+export async function saveSong(song: Song) {
   const songs = await loadSongs();
-  await saveSongs(songs.map((s) => (s.id === id ? change(s) : s)));
-}
-
-/** New lyrics keep the timings of lines that didn't move. */
-export function withLyrics(s: Song, text: string): Song {
-  const lines = splitLyrics(text);
-  return { ...s, lines, times: lines.map((l, i) => (s.lines[i] === l ? s.times[i] : null)) };
+  await saveSongs(songs.map((s) => (s.id === song.id ? song : s)));
 }
 
 export async function removeSong(id: string) {
   const songs = await loadSongs();
   const s = songs.find((x) => x.id === id);
-  if (s && FileSystem.documentDirectory && s.uri.startsWith(FileSystem.documentDirectory)) {
-    await FileSystem.deleteAsync(s.uri, { idempotent: true }).catch(() => {});
+  if (s?.source.kind === 'file' && FileSystem.documentDirectory && s.source.uri.startsWith(FileSystem.documentDirectory)) {
+    await FileSystem.deleteAsync(s.source.uri, { idempotent: true }).catch(() => {});
   }
   await saveSongs(songs.filter((x) => x.id !== id));
 }
@@ -75,4 +74,25 @@ export function useSongs(): [Song[] | null, () => void] {
   }, []);
   useFocusEffect(reload);
   return [songs, reload];
+}
+
+// ---- Lyrics search (LRCLIB: a free, community-made library of timed lyrics) ----
+
+export type LyricsMatch = {
+  id: number;
+  trackName: string;
+  artistName: string;
+  duration: number;
+  syncedLyrics: string | null;
+  plainLyrics: string | null;
+};
+
+export async function searchLyrics(q: string): Promise<LyricsMatch[]> {
+  const res = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`, {
+    headers: { 'Lrclib-Client': 'RussianSpeak (https://github.com/hyrum0-a11y/RussianSpeak)' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const all = ((await res.json()) as LyricsMatch[]).filter((m) => m.syncedLyrics || m.plainLyrics);
+  // Timed lyrics first.
+  return all.sort((a, b) => Number(!!b.syncedLyrics) - Number(!!a.syncedLyrics)).slice(0, 20);
 }

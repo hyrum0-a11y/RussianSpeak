@@ -1,12 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ScrollViewInstance } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { lineAt, loadSongs, updateSong, withLyrics, type Song } from '../lib/songs';
-import { Button, Card, colors, Row } from '../components/ui';
+import YoutubePlayer, { type YoutubeIframeRef } from 'react-native-youtube-iframe';
+import { lineAt, loadSongs, saveSong, type Song } from '../lib/songs';
+import { LyricsFinder } from '../components/LyricsFinder';
+import { Button, colors, Row } from '../components/ui';
 
-const SPEEDS = [0.5, 0.75, 0.9, 1, 1.25];
+/** What the lyrics view needs from either player. */
+type Transport = {
+  t: number;
+  duration: number;
+  playing: boolean;
+  toggle: () => void;
+  seek: (s: number) => void;
+  speed: number;
+  setSpeed: (s: number) => void;
+  speeds: number[];
+};
 
 export default function SongScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,199 +27,229 @@ export default function SongScreen() {
     loadSongs().then((all) => setSong(all.find((s) => s.id === id) ?? null));
   }, [id]);
   if (!song) return null;
-  return <Player song={song} onChange={setSong} />;
+  const onChange = (s: Song) => {
+    setSong(s);
+    saveSong(s);
+  };
+  return song.source.kind === 'youtube' ? (
+    <YouTubeSong song={song} videoId={song.source.videoId} onChange={onChange} />
+  ) : (
+    <FileSong song={song} uri={song.source.uri} onChange={onChange} />
+  );
 }
 
-function Player({ song, onChange }: { song: Song; onChange: (s: Song) => void }) {
-  const player = useAudioPlayer({ uri: song.uri }, { updateInterval: 150 });
+function FileSong({ song, uri, onChange }: { song: Song; uri: string; onChange: (s: Song) => void }) {
+  const player = useAudioPlayer({ uri }, { updateInterval: 150 });
   const status = useAudioPlayerStatus(player);
   const [speed, setSpeed] = useState(1);
-  const [syncing, setSyncing] = useState(false);
-  const [syncNext, setSyncNext] = useState(0);
-  const [editing, setEditing] = useState(false);
-  const scroll = useRef<ScrollViewInstance>(null);
-  const ys = useRef<number[]>([]);
 
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false }).catch(() => {});
   }, []);
-
   useEffect(() => {
     // Pitch stays the same at every speed.
     if (status.isLoaded) player.setPlaybackRate(speed, 'high');
   }, [player, speed, status.isLoaded]);
 
-  const t = status.currentTime;
-  const cur = syncing ? syncNext - 1 : lineAt(song.times, t);
-  const synced = useMemo(() => song.times.filter((x) => x != null).length, [song.times]);
+  const transport: Transport = {
+    t: status.currentTime,
+    duration: status.duration,
+    playing: status.playing,
+    toggle: () => {
+      if (status.playing) return player.pause();
+      if (status.duration && status.currentTime >= status.duration - 0.2) player.seekTo(0);
+      player.play();
+    },
+    seek: (s) => player.seekTo(Math.max(0, s)),
+    speed,
+    setSpeed,
+    speeds: [0.5, 0.75, 0.9, 1, 1.25],
+  };
+  return <SingAlong song={song} transport={transport} onChange={onChange} />;
+}
 
-  // Keep the current line near the top third of the screen.
+function YouTubeSong({ song, videoId, onChange }: { song: Song; videoId: string; onChange: (s: Song) => void }) {
+  const ref = useRef<YoutubeIframeRef>(null);
+  const { width } = useWindowDimensions();
+  const [playing, setPlaying] = useState(false);
+  const [t, setT] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [speed, setSpeed] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+
+  // The YouTube player doesn't push its position, so ask for it a few times a second.
+  useEffect(() => {
+    if (!playing) return;
+    const timer = setInterval(() => {
+      ref.current?.getCurrentTime().then(setT).catch(() => {});
+    }, 200);
+    return () => clearInterval(timer);
+  }, [playing]);
+
+  const transport: Transport = {
+    t,
+    duration,
+    playing,
+    toggle: () => setPlaying((p) => !p),
+    seek: (s) => {
+      const to = Math.max(0, s);
+      ref.current?.seekTo(to, true);
+      setT(to);
+    },
+    speed,
+    setSpeed,
+    speeds: [0.5, 0.75, 1, 1.25],
+  };
+
+  const video = (
+    <View>
+      <YoutubePlayer
+        ref={ref}
+        height={Math.round((width * 9) / 16)}
+        width={width}
+        videoId={videoId}
+        play={playing}
+        playbackRate={speed}
+        onReady={() => ref.current?.getDuration().then(setDuration).catch(() => {})}
+        onChangeState={(s: string) => {
+          if (s === 'playing') setPlaying(true);
+          if (s === 'paused' || s === 'ended') setPlaying(false);
+        }}
+        onError={(e: string) =>
+          setError(
+            e === 'embed_not_allowed' || e === '101' || e === '150'
+              ? "This video can't be played inside other apps. Try another upload of the song."
+              : `YouTube error: ${e}`,
+          )
+        }
+        initialPlayerParams={{ rel: false, iv_load_policy: 3 }}
+      />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+    </View>
+  );
+  return <SingAlong song={song} transport={transport} onChange={onChange} header={video} />;
+}
+
+function SingAlong({
+  song,
+  transport: tr,
+  onChange,
+  header,
+}: {
+  song: Song;
+  transport: Transport;
+  onChange: (s: Song) => void;
+  header?: ReactNode;
+}) {
+  const scroll = useRef<ScrollViewInstance>(null);
+  const ys = useRef<number[]>([]);
+  const [finding, setFinding] = useState(false);
+  const timed = song.times.some((x) => x != null);
+  const cur = timed ? lineAt(song.times, tr.t - song.offset) : -1;
+
+  // Keep the current line in the upper part of the lyrics area.
   useEffect(() => {
     const y = ys.current[cur];
-    if (cur >= 0 && y != null) scroll.current?.scrollTo({ y: Math.max(0, y - 160), animated: true });
+    if (cur >= 0 && y != null) scroll.current?.scrollTo({ y: Math.max(0, y - 120), animated: true });
   }, [cur]);
 
-  async function save(next: Song) {
-    onChange(next);
-    await updateSong(next.id, () => next);
-  }
-
-  function togglePlay() {
-    if (status.playing) player.pause();
-    else {
-      if (status.duration && t >= status.duration - 0.2) player.seekTo(0);
-      player.play();
-    }
-  }
-
-  function startSync() {
-    setSyncing(true);
-    setSyncNext(0);
-    save({ ...song, times: song.lines.map(() => null) });
-    player.seekTo(0);
-    player.play();
-  }
-
-  /** Mark the next line as starting now. */
-  function stamp() {
-    if (syncNext >= song.lines.length) return;
-    const times = [...song.times];
-    times[syncNext] = Math.max(0, player.currentTime - 0.2); // small allowance for reaction time
-    save({ ...song, times });
-    if (syncNext + 1 >= song.lines.length) setSyncing(false);
-    setSyncNext(syncNext + 1);
-  }
-
-  function tapLine(i: number) {
-    const ti = song.times[i];
-    if (syncing || ti == null) return;
-    player.seekTo(ti);
-    if (!status.playing) player.play();
-  }
-
-  if (editing) {
-    return (
-      <EditLyrics
-        song={song}
-        onDone={(text) => {
-          setEditing(false);
-          if (text != null) save(withLyrics(song, text));
-        }}
-      />
-    );
-  }
+  const nudge = (d: number) => onChange({ ...song, offset: Math.round((song.offset + d) * 10) / 10 });
 
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ title: song.title }} />
-      <ScrollView ref={scroll} contentContainerStyle={styles.lyricsWrap}>
-        {synced === 0 && !syncing ? (
-          <Card style={{ gap: 8, marginBottom: 12 }}>
-            <Text style={styles.tipTitle}>Make the lyrics follow along</Text>
-            <Text style={styles.tip}>
-              Tap “Sync lyrics”, then tap “Next line” each time a new line starts. Do it once at any speed; after that
-              the lyrics follow the song at every speed.
-            </Text>
-          </Card>
-        ) : null}
-        {song.lines.map((line, i) => (
-          <Pressable
-            key={i}
-            onLayout={(e) => {
-              ys.current[i] = e.nativeEvent.layout.y;
-            }}
-            onPress={() => tapLine(i)}
-            style={[styles.line, i === cur && styles.lineOn]}
-          >
-            <Text style={[styles.lineText, i === cur && styles.lineTextOn, i < cur && styles.linePast]}>{line}</Text>
-          </Pressable>
-        ))}
-        <Pressable onPress={() => setEditing(true)} hitSlop={8}>
-          <Text style={styles.edit}>✎ Edit lyrics</Text>
-        </Pressable>
+      {header}
+      <ScrollView ref={scroll} contentContainerStyle={styles.lyricsWrap} keyboardShouldPersistTaps="handled">
+        {finding ? (
+          <View style={{ gap: 10 }}>
+            <LyricsFinder
+              initialQuery={song.title}
+              onPick={(l) => {
+                setFinding(false);
+                ys.current = [];
+                onChange({ ...song, lines: l.lines, times: l.times, offset: 0 });
+              }}
+            />
+            <Button label="Cancel" variant="outline" onPress={() => setFinding(false)} style={{ flex: 0 }} />
+          </View>
+        ) : (
+          <>
+            {!timed ? (
+              <Text style={styles.tip}>These lyrics aren't timed, so they won't highlight. Tap “Change lyrics” to look for timed ones.</Text>
+            ) : null}
+            {song.lines.map((line, i) => (
+              <Pressable
+                key={i}
+                onLayout={(e) => {
+                  ys.current[i] = e.nativeEvent.layout.y;
+                }}
+                onPress={() => {
+                  const ti = song.times[i];
+                  if (ti != null) tr.seek(ti + song.offset);
+                }}
+                style={[styles.line, i === cur && styles.lineOn]}
+              >
+                <Text style={[styles.lineText, i === cur && styles.lineTextOn, i < cur && styles.linePast]}>{line}</Text>
+              </Pressable>
+            ))}
+            <Pressable onPress={() => setFinding(true)} hitSlop={8}>
+              <Text style={styles.link}>🔎 Change lyrics</Text>
+            </Pressable>
+          </>
+        )}
       </ScrollView>
 
       <View style={styles.controls}>
         <Text style={styles.time}>
-          {fmt(t)} / {fmt(status.duration)}
+          {fmt(tr.t)} / {fmt(tr.duration)}
         </Text>
-        {syncing ? (
-          <>
-            <Text style={styles.syncHint}>
-              Next: {song.lines[syncNext] ?? '—'}
-            </Text>
-            <Row>
-              <Button label="Stop syncing" variant="outline" onPress={() => setSyncing(false)} />
-              <Button label="Next line ▶" color={colors.good} onPress={stamp} />
-            </Row>
-          </>
-        ) : (
-          <>
-            <Row>
-              <Button label="⏪ 5s" variant="outline" onPress={() => player.seekTo(Math.max(0, t - 5))} />
-              <Button label={status.playing ? '⏸ Pause' : '▶ Play'} onPress={togglePlay} />
-              <Button label="5s ⏩" variant="outline" onPress={() => player.seekTo(t + 5)} />
-            </Row>
-            <View style={styles.speeds}>
-              {SPEEDS.map((s) => (
-                <Pressable key={s} onPress={() => setSpeed(s)} style={[styles.chip, speed === s && styles.chipOn]}>
-                  <Text style={[styles.chipText, speed === s && styles.chipTextOn]}>{s}×</Text>
-                </Pressable>
-              ))}
-            </View>
-            <Pressable
-              onPress={() =>
-                synced
-                  ? Alert.alert('Sync again?', 'This replaces the current timings.', [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Sync again', onPress: startSync },
-                    ])
-                  : startSync()
-              }
-              hitSlop={8}
-            >
-              <Text style={styles.syncLink}>
-                {synced ? `⟲ Sync lyrics again (${synced}/${song.lines.length} synced)` : '⏱ Sync lyrics'}
-              </Text>
+        <Row>
+          <Button label="⏪ 5s" variant="outline" onPress={() => tr.seek(tr.t - 5)} />
+          <Button label={tr.playing ? '⏸ Pause' : '▶ Play'} onPress={tr.toggle} />
+          <Button label="5s ⏩" variant="outline" onPress={() => tr.seek(tr.t + 5)} />
+        </Row>
+        <View style={styles.speeds}>
+          {tr.speeds.map((s) => (
+            <Pressable key={s} onPress={() => tr.setSpeed(s)} style={[styles.chip, tr.speed === s && styles.chipOn]}>
+              <Text style={[styles.chipText, tr.speed === s && styles.chipTextOn]}>{s}×</Text>
             </Pressable>
-          </>
-        )}
+          ))}
+        </View>
+        {timed ? (
+          <View style={styles.offsetRow}>
+            <Text style={styles.offsetLabel}>Lyrics timing</Text>
+            <Pressable onPress={() => nudge(-0.5)} style={styles.smallBtn} hitSlop={6}>
+              <Text style={styles.smallBtnText}>Earlier</Text>
+            </Pressable>
+            <Text style={styles.offsetValue}>
+              {song.offset > 0 ? '+' : ''}
+              {song.offset.toFixed(1)}s
+            </Text>
+            <Pressable onPress={() => nudge(0.5)} style={styles.smallBtn} hitSlop={6}>
+              <Text style={styles.smallBtnText}>Later</Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
     </View>
   );
 }
 
-function EditLyrics({ song, onDone }: { song: Song; onDone: (text: string | null) => void }) {
-  const [text, setText] = useState(song.lines.join('\n'));
-  return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
-      <Text style={styles.tip}>Lines you don't change keep their timing.</Text>
-      <TextInput style={styles.input} value={text} onChangeText={setText} multiline textAlignVertical="top" />
-      <Row>
-        <Button label="Cancel" variant="outline" onPress={() => onDone(null)} />
-        <Button label="Save" onPress={() => onDone(text)} />
-      </Row>
-    </ScrollView>
-  );
-}
-
 function fmt(s: number) {
   if (!s || !isFinite(s)) return '0:00';
-  const m = Math.floor(s / 60);
-  const r = Math.floor(s % 60);
-  return `${m}:${r.toString().padStart(2, '0')}`;
+  return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
 }
 
 const styles = StyleSheet.create({
-  lyricsWrap: { padding: 16, paddingBottom: 240 },
+  lyricsWrap: { padding: 16, paddingBottom: 260 },
   line: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10 },
   lineOn: { backgroundColor: '#FFF4D6' },
   lineText: { fontSize: 20, lineHeight: 28, color: colors.text },
   lineTextOn: { fontWeight: '700', color: colors.primary },
   linePast: { color: colors.muted },
-  edit: { color: colors.primary, textAlign: 'center', marginTop: 20, fontWeight: '600' },
-  tipTitle: { fontWeight: '700', color: colors.text },
-  tip: { color: colors.muted, lineHeight: 20 },
+  link: { color: colors.primary, textAlign: 'center', marginTop: 20, fontWeight: '600' },
+  tip: { color: colors.muted, lineHeight: 20, marginBottom: 8 },
+  error: { color: colors.again, padding: 12 },
   controls: {
     position: 'absolute',
     left: 0,
@@ -221,21 +263,14 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   time: { textAlign: 'center', color: colors.muted, fontVariant: ['tabular-nums'] },
-  syncHint: { textAlign: 'center', color: colors.text, fontSize: 15 },
   speeds: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { color: colors.text },
   chipTextOn: { color: colors.primaryText, fontWeight: '600' },
-  syncLink: { textAlign: 'center', color: colors.primary, fontWeight: '600' },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 300,
-    color: colors.text,
-    backgroundColor: colors.card,
-  },
+  offsetRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
+  offsetLabel: { color: colors.muted, fontSize: 13 },
+  offsetValue: { color: colors.text, fontVariant: ['tabular-nums'], minWidth: 44, textAlign: 'center' },
+  smallBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: colors.border },
+  smallBtnText: { color: colors.primary, fontSize: 13, fontWeight: '600' },
 });
