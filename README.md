@@ -37,7 +37,7 @@ An APK is the Android app-install file, like an .exe on Windows.
 3. Open **Releases** and pick the newest "RussianSpeak build". Download the `.apk` file and open it.
 4. Android will ask you to allow installs from your browser or the GitHub app. Allow it, then tap Install.
 
-To update later, install the newer APK over the old one. Your progress is kept.
+To update later, tap **Download & install** on the home screen when an update shows. The app downloads the APK itself and opens Android's installer (the first time, allow RussianSpeak to install apps). Your progress is kept.
 
 ## Build an APK with EAS (alternative)
 
