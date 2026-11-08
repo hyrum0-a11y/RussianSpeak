@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { findSong, parseLrc, searchLyrics, type Lyrics, type LyricsMatch } from '../lib/songs';
 import { SONG_CATALOG } from '../data/songCatalog';
-import { Button, colors, Row, T } from './ui';
+import { Button, colors, Row, T, useLang } from './ui';
 
 /**
  * Find lyrics online (timed ones highlight as the song plays), or paste them.
@@ -18,6 +18,7 @@ export function LyricsFinder({
   /** Show popular artists to browse. */
   browse?: boolean;
 }) {
+  const tr = useLang();
   const [q, setQ] = useState(initialQuery);
   const [results, setResults] = useState<LyricsMatch[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -154,7 +155,7 @@ export function LyricsFinder({
             </Text>
           </View>
           <Text style={[styles.tag, m.syncedLyrics ? { color: colors.good } : null]}>
-            {m.syncedLyrics ? '⏱ с подсве́ткой' : 'то́лько текст'}
+            {m.syncedLyrics ? tr('⏱ с подсве́ткой', '⏱ highlights') : tr('то́лько текст', 'text only')}
           </Text>
         </Pressable>
       ))}

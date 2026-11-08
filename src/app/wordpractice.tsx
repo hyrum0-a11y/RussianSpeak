@@ -5,12 +5,13 @@ import { router } from 'expo-router';
 import { gradeWord, loadProgress, useProgress } from '../lib/storage';
 import { speakRu } from '../lib/speech';
 import { Marked } from '../components/Marked';
-import { Button, Card, colors, Row } from '../components/ui';
+import { Button, Card, colors, Row, T, useLang } from '../components/ui';
 
 const ORDER = { undefined: 0, hard: 1, good: 2, easy: 3 } as Record<string, number>;
 
 /** One word at a time, shown inside a sentence. Work out the meaning, then check. */
 export default function WordPractice() {
+  const tr = useLang();
   const [p] = useProgress();
   const [queue, setQueue] = useState<string[] | null>(null);
   const [shown, setShown] = useState(false);
@@ -33,7 +34,7 @@ export default function WordPractice() {
   if (!w) {
     return (
       <View style={styles.center}>
-        <Text style={styles.done}>Отли́чно! 🎉</Text>
+        <T style={styles.done} en="Great! 🎉">Отли́чно! 🎉</T>
         <Button label="Наза́д" en="Back" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
@@ -59,7 +60,7 @@ export default function WordPractice() {
         <Marked sentence={sentence} word={w.word} style={styles.sentence} />
         {item.full ? (
           <Pressable onPress={() => setFull(!full)} hitSlop={8}>
-            <Text style={styles.link}>{full ? '◂ Ко́ротко' : 'Це́лое предложе́ние ▸'}</Text>
+            <Text style={styles.link}>{full ? tr('◂ Ко́ротко', '◂ Short') : tr('Це́лое предложе́ние ▸', 'Whole sentence ▸')}</Text>
           </Pressable>
         ) : null}
         <Button label="🔊 Слу́шать" variant="outline" onPress={() => speakRu(sentence)} style={{ flex: 0 }} />
@@ -77,7 +78,7 @@ export default function WordPractice() {
             ))}
           </>
         ) : (
-          <Text style={styles.hint}>Что зна́чит вы́деленное сло́во?</Text>
+          <T style={styles.hint} en="What does the highlighted word mean?">Что зна́чит вы́деленное сло́во?</T>
         )}
       </Card>
       {shown ? (

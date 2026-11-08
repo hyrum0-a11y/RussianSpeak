@@ -5,12 +5,13 @@ import { lookUp, titleFor, wiktionaryUrl, type Entry } from '../lib/dictionary';
 import { speakRu } from '../lib/speech';
 import { saveWord, useProgress } from '../lib/storage';
 import { dictKey, markWord, wordList } from '../lib/wiktionary';
-import { colors } from '../components/ui';
+import { colors, T, useLang } from '../components/ui';
 import { AskAI } from '../components/AskAI';
 
 type Row = { word: string; key: string; lookup?: boolean };
 
 export default function Dictionary() {
+  const tr = useLang();
   const [p] = useProgress();
   const [q, setQ] = useState('');
   const [open, setOpen] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function Dictionary() {
           clearButtonMode="while-editing"
         />
         <Text style={styles.count}>
-          {q ? `${rows.filter((r) => !r.lookup).length} из ${words.length}` : `${words.length} слов из ва́ших ка́рточек · и́ли найди́те любо́е сло́во`}
+          {q ? `${rows.filter((r) => !r.lookup).length} из ${words.length}` : tr(`${words.length} слов из ва́ших ка́рточек · и́ли найди́те любо́е сло́во`, `${words.length} words from your cards · or look up any word`)}
         </Text>
       </View>
       <FlatList
@@ -65,7 +66,7 @@ export default function Dictionary() {
             }}
           />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Ничего́ не на́йдено.</Text>}
+        ListEmptyComponent={<T style={styles.empty} en="Nothing found.">Ничего́ не на́йдено.</T>}
       />
     </View>
   );
@@ -98,15 +99,15 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
     };
   }, [word]);
 
-  if (error) return <Text style={styles.muted}>Нет свя́зи со словарём. Прове́рьте интерне́т.</Text>;
+  if (error) return <T style={styles.muted} en="Can't reach the dictionary. Check your internet.">Нет свя́зи со словарём. Прове́рьте интерне́т.</T>;
   if (!entry) return <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />;
 
   if (!entry.found) {
     return (
       <View style={{ gap: 8 }}>
-        <Text style={styles.muted}>
+        <T style={styles.muted} en={entry.suggestions.length ? 'This is probably a form of a word. Maybe:' : 'No entry.'}>
           {entry.suggestions.length ? 'Э́то, наве́рное, фо́рма слова́. Мо́жет быть:' : 'Статьи́ нет.'}
-        </Text>
+        </T>
         <View style={styles.chips}>
           {entry.suggestions.map((s) => (
             <Pressable key={s} onPress={() => onPick(s)} style={styles.chip}>
@@ -140,7 +141,7 @@ function SaveWord({ title, meanings, examples, phrases }: { title: string; meani
   const [p] = useProgress();
   if (!p) return null;
   const saved = p.words.some((w) => w.word === title);
-  if (saved) return <Text style={styles.saved}>✓ В мои́х слова́х</Text>;
+  if (saved) return <T style={styles.saved} en="✓ In my words">✓ В мои́х слова́х</T>;
   const fromCards = allPhrases(p.custom)
     .map((x) => x.ru.replace(/ \/ /g, ' '))
     .filter((ru) => markWord(ru, title).some((part) => part.hit));
@@ -150,7 +151,7 @@ function SaveWord({ title, meanings, examples, phrases }: { title: string; meani
       style={styles.saveBtn}
       accessibilityRole="button"
     >
-      <Text style={styles.saveText}>＋ В мои́ сло́ва</Text>
+      <T style={styles.saveText} en="＋ Add to my words">＋ В мои́ сло́ва</T>
     </Pressable>
   );
 }

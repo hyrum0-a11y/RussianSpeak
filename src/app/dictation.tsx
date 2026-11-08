@@ -38,8 +38,8 @@ export default function Dictation() {
   if (!current) {
     return (
       <View style={styles.center}>
-        <Text style={styles.doneTitle}>Гото́во! ✍️</Text>
-        <Text style={styles.doneBody}>В сре́днем {Math.round((total / Math.max(1, items.length)) * 100)}% слов ве́рно.</Text>
+        <T style={styles.doneTitle} en="Done! ✍️">Гото́во! ✍️</T>
+        <T style={styles.doneBody} en={`Average: ${Math.round((total / Math.max(1, items.length)) * 100)}% of words right.`}>В сре́днем {Math.round((total / Math.max(1, items.length)) * 100)}% слов ве́рно.</T>
         <Button label="Наза́д" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );

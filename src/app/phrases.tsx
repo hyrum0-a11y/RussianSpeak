@@ -4,9 +4,10 @@ import { allPhrases, catEn, catRu, CATEGORIES } from '../data/phrases';
 import { apostropheToStress } from '../lib/compare';
 import { speakRu } from '../lib/speech';
 import { addCustomPhrase, removeCustomPhrase, useProgress } from '../lib/storage';
-import { Button, Card, colors, hint, T } from '../components/ui';
+import { Button, Card, colors, hint, T, useLang } from '../components/ui';
 
 export default function Phrases() {
+  const tr = useLang();
   const [p] = useProgress();
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -54,7 +55,7 @@ export default function Phrases() {
         return (
           <Pressable onPress={() => toggle(section.title)} onLongPress={() => hint(catEn(section.title))} style={styles.headerRow} accessibilityRole="button">
             <Text style={styles.header}>
-              {isOpen ? '▾' : '▸'} {catRu(section.title)}
+              {isOpen ? '▾' : '▸'} {tr(catRu(section.title), catEn(section.title))}
             </Text>
             <Text style={styles.count}>{section.count}</Text>
           </Pressable>
@@ -146,6 +147,7 @@ const styles = StyleSheet.create({
   count: { color: colors.muted, fontSize: 14 },
   empty: { color: colors.muted, marginBottom: 8 },
   item: {
+    marginLeft: 18, // indented under its group heading
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,

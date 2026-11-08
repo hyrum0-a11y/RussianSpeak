@@ -39,7 +39,7 @@ export default function Respond() {
   if (!current) {
     return (
       <View style={styles.center}>
-        <Text style={styles.doneTitle}>Молоде́ц! 💪</Text>
+        <T style={styles.doneTitle} en="Well done! 💪">Молоде́ц! 💪</T>
         <T style={styles.doneBody} en="That's all the prompts for now.">На сего́дня вопро́сов бо́льше нет.</T>
         <Button label="Наза́д" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
@@ -76,7 +76,7 @@ export default function Respond() {
           <Button label="🔊 Ещё раз" en="🔊 Repeat" variant="outline" onPress={() => speakRu(current.ru, rate)} />
           <Button label="🐢 Ме́дленно" en="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
         </Row>
-        {current.hint ? <Text style={styles.hint}>💡 Grammar: {current.hint}</Text> : null}
+        {current.hint ? <Text style={styles.hint}>💡 {current.hint}</Text> : null}
       </Card>
 
       <T style={styles.section} en="Your answer: record it out loud">Ваш отве́т: запиши́те его́ вслух</T>
