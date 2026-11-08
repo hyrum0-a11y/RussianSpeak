@@ -3,10 +3,10 @@ import type { CardState } from './srs';
 export type Status = 'new' | 'due' | 'learning' | 'learned';
 
 export const STATUS_LABEL: Record<Status, string> = {
-  due: 'Пора',
-  learning: 'В процессе',
-  learned: 'Выучено',
-  new: 'Новое',
+  due: 'Пора́',
+  learning: 'В проце́ссе',
+  learned: 'Вы́учено',
+  new: 'Но́вое',
 };
 
 export const STATUS_EN: Record<Status, string> = {

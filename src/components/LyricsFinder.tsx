@@ -35,7 +35,7 @@ export function LyricsFinder({
     try {
       setResults(await searchLyrics(query.trim()));
     } catch {
-      setError('Нет связи с библиотекой текстов. Проверьте интернет или вставьте текст сами.');
+      setError('Нет свя́зи с библиоте́кой те́кстов. Прове́рьте интерне́т и́ли вста́вьте текст са́ми.');
     } finally {
       setBusy(false);
     }
@@ -56,7 +56,7 @@ export function LyricsFinder({
         setResults(await searchLyrics(`${a} ${track}`));
       }
     } catch {
-      setError('Нет связи с библиотекой текстов. Проверьте интернет или вставьте текст сами.');
+      setError('Нет свя́зи с библиоте́кой те́кстов. Прове́рьте интерне́т и́ли вста́вьте текст са́ми.');
     } finally {
       setBusy(false);
     }
@@ -72,17 +72,17 @@ export function LyricsFinder({
       <View style={styles.wrap}>
         <TextInput
           style={[styles.input, { minHeight: 180 }]}
-          placeholder="Вставьте текст, по строке на строку"
+          placeholder="Вста́вьте текст, по строке́ на строку́"
           value={pasted}
           onChangeText={setPasted}
           multiline
           textAlignVertical="top"
         />
-        <T style={styles.help} en="Pasted lyrics show without highlighting, unless they have [00:12.34] times.">Вставленный текст без подсветки, если в нём нет времени вида [00:12.34].</T>
+        <T style={styles.help} en="Pasted lyrics show without highlighting, unless they have [00:12.34] times.">Вста́вленный текст без подсве́тки, е́сли в нём нет вре́мени ви́да [00:12.34].</T>
         <Row>
-          <Button label="Назад к поиску" en="Back to search" variant="outline" onPress={() => setPasting(false)} />
+          <Button label="Наза́д к по́иску" en="Back to search" variant="outline" onPress={() => setPasting(false)} />
           <Button
-            label="Готово" en="Use these lyrics"
+            label="Гото́во" en="Use these lyrics"
             disabled={!pasted.trim()}
             onPress={() => onPick({ ...parseLrc(pasted), label: 'Свой текст' })}
           />
@@ -93,11 +93,11 @@ export function LyricsFinder({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{browse ? 'Найдите песню или выберите исполнителя' : 'Найдите текст (исполнитель и название)'}</Text>
+      <Text style={styles.label}>{browse ? 'Найди́те пе́сню и́ли вы́берите исполни́теля' : 'Найди́те текст (исполни́тель и назва́ние)'}</Text>
       <View style={styles.searchRow}>
         <TextInput
           style={[styles.input, { flex: 1 }]}
-          placeholder="Пикник Иероглиф"
+          placeholder="Пи́кник Иеро́глиф"
           value={q}
           onChangeText={setQ}
           onSubmitEditing={() => run(q)}
@@ -137,7 +137,7 @@ export function LyricsFinder({
       {busy ? <ActivityIndicator color={colors.primary} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {results && !busy && results.length === 0 ? (
-        <T style={styles.help} en="Nothing found. Try just the song name, or the artist in Latin letters.">Ничего не нашлось. Попробуйте только название песни или имя исполнителя латиницей.</T>
+        <T style={styles.help} en="Nothing found. Try just the song name, or the artist in Latin letters.">Ничего́ не нашло́сь. Попро́буйте то́лько назва́ние пе́сни и́ли и́мя исполни́теля латини́цей.</T>
       ) : null}
       {results?.map((m) => (
         <Pressable
@@ -154,12 +154,12 @@ export function LyricsFinder({
             </Text>
           </View>
           <Text style={[styles.tag, m.syncedLyrics ? { color: colors.good } : null]}>
-            {m.syncedLyrics ? '⏱ с подсветкой' : 'только текст'}
+            {m.syncedLyrics ? '⏱ с подсве́ткой' : 'то́лько текст'}
           </Text>
         </Pressable>
       ))}
       <Pressable onPress={() => setPasting(true)} hitSlop={8}>
-        <T style={styles.link} en="Paste lyrics instead">Вставить текст самому</T>
+        <T style={styles.link} en="Paste lyrics instead">Вста́вить текст самому́</T>
       </Pressable>
     </View>
   );

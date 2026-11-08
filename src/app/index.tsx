@@ -48,14 +48,14 @@ export default function Home() {
       {update && (
         <Banner
           tone="good"
-          title={`Есть обновление · сборка ${update.build}`}
+          title={`Есть обновле́ние · сбо́рка ${update.build}`}
           titleEn={`Update available · build ${update.build}`}
-          body="Скачивается в приложении, потом Android предложит установить. В первый раз разрешите RussianSpeak устанавливать приложения. Прогресс сохранится."
+          body="Скачива́ется в приложе́нии, пото́м Android предложи́т установи́ть. В пе́рвый раз разреши́те RussianSpeak устана́вливать приложе́ния. Прогре́сс сохрани́тся."
           bodyEn="Downloads inside the app, then Android asks to install. The first time, allow RussianSpeak to install apps. Your progress is kept."
         >
           <Button
             en="Download & install"
-            label={progress === null ? '⬇ Скачать и установить' : `Скачивание… ${Math.round(progress * 100)}%`}
+            label={progress === null ? '⬇ Скача́ть и установи́ть' : `Скачива́ние… ${Math.round(progress * 100)}%`}
             color={colors.good}
             disabled={progress !== null}
             onPress={async () => {
@@ -70,22 +70,22 @@ export default function Home() {
       {!voiceOk && (
         <Banner
           tone="warn"
-          title="Нет русского голоса"
+          title="Нет ру́сского го́лоса"
           titleEn="No Russian voice found"
-          body="Откройте Настройки → Русский голос, там написано, как его установить."
+          body="Откро́йте Настро́йки → Ру́сский го́лос, там напи́сано, как его́ установи́ть."
           bodyEn="Open Settings → Russian voice for the steps to install one."
         />
       )}
       {!p.settings.holdHintDone && (
         <Banner
           tone="good"
-          title="Всё по-русски 🇷🇺"
+          title="Всё по-ру́сски 🇷🇺"
           titleEn="Everything is in Russian"
-          body="Нажмите и удерживайте любую кнопку или надпись, чтобы увидеть английский."
+          body="Нажми́те и уде́рживайте любу́ю кно́пку и́ли на́дпись, что́бы уви́деть англи́йский."
           bodyEn="Press and hold any button or label to see the English."
         >
           <Button
-            label="Понятно"
+            label="Поня́тно"
             en="Got it"
             onPress={() => updateProgress((q) => ({ ...q, settings: { ...q.settings, holdHintDone: true } }))}
             style={{ flex: 0 }}
@@ -100,10 +100,10 @@ export default function Home() {
         <View style={styles.heroProgress}>
           <ProgressBar value={all.length ? learned / all.length : 0} color="#F2C14E" height={8} />
           <T style={styles.heroMeta} en={`${learned} of ${all.length} phrases learned`}>
-            Выучено {learned} из {all.length}
+            Вы́учено {learned} из {all.length}
           </T>
         </View>
-        <T style={styles.heroAsk} en="Cards you marked…">Карточки, которые вы отметили…</T>
+        <T style={styles.heroAsk} en="Cards you marked…">Ка́рточки, кото́рые вы отме́тили…</T>
         <View style={styles.levels}>
           {LEVELS.map((l) => {
             const n = levelCounts[l.grade];
@@ -125,7 +125,7 @@ export default function Home() {
 
 
       {/* Decks */}
-      <T style={styles.sectionTitle} en="Decks">Колоды</T>
+      <T style={styles.sectionTitle} en="Decks">Коло́ды</T>
       <View style={styles.grid}>
         {DECKS.map((d, i) => {
           const s = deckStats[i];
@@ -148,7 +148,7 @@ export default function Home() {
                 {d.title}
               </Text>
               <Text style={styles.tileMeta}>
-                {s.total ? `выучено ${s.learned}/${s.total}` : 'Добавьте свои'}
+                {s.total ? `вы́учено ${s.learned}/${s.total}` : 'Доба́вьте свои́'}
               </Text>
               <ProgressBar value={s.total ? s.learned / s.total : 0} height={4} />
             </Pressable>
@@ -157,33 +157,33 @@ export default function Home() {
       </View>
 
       {/* Practice */}
-      <T style={styles.sectionTitle} en="Practice">Практика</T>
+      <T style={styles.sectionTitle} en="Practice">Пра́ктика</T>
       <View style={styles.modes}>
-        <ModeTile icon="🗣" label="Говорить" sub={`${promptsDue} вопр.`} en={`Speak: answer questions out loud (${promptsDue} prompts)`} onPress={() => router.push('/respond')} />
-        <ModeTile icon="🎧" label="Диктант" sub="Слушать и писать" en="Dictation: hear & type" onPress={() => router.push('/dictation')} />
-        <ModeTile icon="✏️" label="Пропуск" sub="Окончания" en="Fill in the blank: endings" onPress={() => router.push('/cloze')} />
+        <ModeTile icon="🗣" label="Говори́ть" sub={`${promptsDue} вопр.`} en={`Speak: answer questions out loud (${promptsDue} prompts)`} onPress={() => router.push('/respond')} />
+        <ModeTile icon="🎧" label="Дикта́нт" sub="Слу́шать и писа́ть" en="Dictation: hear & type" onPress={() => router.push('/dictation')} />
+        <ModeTile icon="✏️" label="Про́пуск" sub="Оконча́ния" en="Fill in the blank: endings" onPress={() => router.push('/cloze')} />
       </View>
       <Pressable onPress={() => router.push('/words')} onLongPress={() => hint('My words: new words, learned inside real sentences')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
         <Text style={styles.modeIcon}>📝</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.modeLabel}>Мои слова · {p.words.length}</Text>
-          <Text style={styles.modeSub}>Новые слова в настоящих фразах</Text>
+          <Text style={styles.modeLabel}>Мои́ сло́ва · {p.words.length}</Text>
+          <Text style={styles.modeSub}>Но́вые сло́ва в настоя́щих фра́зах</Text>
         </View>
         <Text style={styles.chev}>›</Text>
       </Pressable>
       <Pressable onPress={() => router.push('/songs')} onLongPress={() => hint('Sing along: YouTube or your own files, lyrics light up')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
         <Text style={styles.modeIcon}>🎵</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.modeLabel}>Поём вместе</Text>
-          <Text style={styles.modeSub}>YouTube или свои файлы, текст подсвечивается</Text>
+          <Text style={styles.modeLabel}>Поём вме́сте</Text>
+          <Text style={styles.modeSub}>YouTube и́ли свои́ фа́йлы, текст подсве́чивается</Text>
         </View>
         <Text style={styles.chev}>›</Text>
       </Pressable>
 
       <View style={styles.footer}>
-        <FooterLink label="📚 Фразы" en="Phrase library" onPress={() => router.push('/phrases')} />
-        <FooterLink label="📖 Словарь" en="Dictionary" onPress={() => router.push('/dictionary')} />
-        <FooterLink label="⚙️ Настройки" en="Settings" onPress={() => router.push('/settings')} />
+        <FooterLink label="📚 Фра́зы" en="Phrase library" onPress={() => router.push('/phrases')} />
+        <FooterLink label="📖 Слова́рь" en="Dictionary" onPress={() => router.push('/dictionary')} />
+        <FooterLink label="⚙️ Настро́йки" en="Settings" onPress={() => router.push('/settings')} />
       </View>
     </ScrollView>
   );

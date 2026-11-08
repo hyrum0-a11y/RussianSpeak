@@ -5,7 +5,7 @@ import { aiPrompt } from '../lib/askAi';
 import { Button, colors, Row } from './ui';
 
 /**
- * "Спросить ИИ": writes a question about the phrase and hands it to whatever
+ * "Спроси́ть ИИ": writes a question about the phrase and hands it to whatever
  * AI app you like through Android's share menu (or copies it).
  */
 export function AskAI({ text }: { text: string }) {
@@ -16,7 +16,7 @@ export function AskAI({ text }: { text: string }) {
   if (!open) {
     return (
       <Pressable onPress={() => setOpen(true)} hitSlop={8} accessibilityRole="button">
-        <Text style={styles.link}>🤖 Спросить ИИ</Text>
+        <Text style={styles.link}>🤖 Спроси́ть ИИ</Text>
       </Pressable>
     );
   }
@@ -26,7 +26,7 @@ export function AskAI({ text }: { text: string }) {
     <View style={styles.box}>
       <TextInput
         style={styles.input}
-        placeholder="Ваш вопрос (можно оставить пустым)"
+        placeholder="Ваш вопро́с (мо́жно оста́вить пусты́м)"
         value={q}
         onChangeText={(t) => {
           setQ(t);
@@ -35,15 +35,15 @@ export function AskAI({ text }: { text: string }) {
         multiline
       />
       <Row>
-        <Button label="Отправить…" onPress={() => Share.share({ message }).catch(() => {})} />
+        <Button label="Отпра́вить…" onPress={() => Share.share({ message }).catch(() => {})} />
         <Button
-          label={copied ? 'Скопировано ✓' : 'Копировать'}
+          label={copied ? 'Скопи́ровано ✓' : 'Копи́ровать'}
           variant="outline"
           onPress={() => Clipboard.setStringAsync(message).then(() => setCopied(true))}
         />
       </Row>
       <Pressable onPress={() => setOpen(false)} hitSlop={8}>
-        <Text style={styles.close}>Закрыть</Text>
+        <Text style={styles.close}>Закры́ть</Text>
       </Pressable>
     </View>
   );

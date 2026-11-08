@@ -33,7 +33,7 @@ export default function Dictionary() {
       <View style={styles.searchWrap}>
         <TextInput
           style={styles.search}
-          placeholder="Поиск слова…"
+          placeholder="По́иск слова́…"
           value={q}
           onChangeText={(t) => {
             setQ(t);
@@ -44,7 +44,7 @@ export default function Dictionary() {
           clearButtonMode="while-editing"
         />
         <Text style={styles.count}>
-          {q ? `${rows.filter((r) => !r.lookup).length} из ${words.length}` : `${words.length} слов из ваших карточек · или найдите любое слово`}
+          {q ? `${rows.filter((r) => !r.lookup).length} из ${words.length}` : `${words.length} слов из ва́ших ка́рточек · и́ли найди́те любо́е сло́во`}
         </Text>
       </View>
       <FlatList
@@ -65,7 +65,7 @@ export default function Dictionary() {
             }}
           />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Ничего не найдено.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>Ничего́ не на́йдено.</Text>}
       />
     </View>
   );
@@ -98,14 +98,14 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
     };
   }, [word]);
 
-  if (error) return <Text style={styles.muted}>Нет связи со словарём. Проверьте интернет.</Text>;
+  if (error) return <Text style={styles.muted}>Нет свя́зи со словарём. Прове́рьте интерне́т.</Text>;
   if (!entry) return <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />;
 
   if (!entry.found) {
     return (
       <View style={{ gap: 8 }}>
         <Text style={styles.muted}>
-          {entry.suggestions.length ? 'Это, наверное, форма слова. Может быть:' : 'Статьи нет.'}
+          {entry.suggestions.length ? 'Э́то, наве́рное, фо́рма слова́. Мо́жет быть:' : 'Статьи́ нет.'}
         </Text>
         <View style={styles.chips}>
           {entry.suggestions.map((s) => (
@@ -129,18 +129,18 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
       <SaveWord title={entry.title} meanings={entry.meanings} examples={entry.examples} phrases={entry.phrases} />
       <AskAI text={word} />
       <Pressable onPress={() => Linking.openURL(wiktionaryUrl(entry.title))} hitSlop={6}>
-        <Text style={styles.source}>Викисловарь ↗</Text>
+        <Text style={styles.source}>Викисло́варь ↗</Text>
       </Pressable>
     </View>
   );
 }
 
-/** "＋ В мои слова": keep the word with example sentences from Викисловарь and from your cards. */
+/** "＋ В мои́ сло́ва": keep the word with example sentences from Викисло́варь and from your cards. */
 function SaveWord({ title, meanings, examples, phrases }: { title: string; meanings: string[]; examples: string[]; phrases: string[] }) {
   const [p] = useProgress();
   if (!p) return null;
   const saved = p.words.some((w) => w.word === title);
-  if (saved) return <Text style={styles.saved}>✓ В моих словах</Text>;
+  if (saved) return <Text style={styles.saved}>✓ В мои́х слова́х</Text>;
   const fromCards = allPhrases(p.custom)
     .map((x) => x.ru.replace(/ \/ /g, ' '))
     .filter((ru) => markWord(ru, title).some((part) => part.hit));
@@ -150,7 +150,7 @@ function SaveWord({ title, meanings, examples, phrases }: { title: string; meani
       style={styles.saveBtn}
       accessibilityRole="button"
     >
-      <Text style={styles.saveText}>＋ В мои слова</Text>
+      <Text style={styles.saveText}>＋ В мои́ сло́ва</Text>
     </Pressable>
   );
 }

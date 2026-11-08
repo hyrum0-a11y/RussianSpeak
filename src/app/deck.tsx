@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
-import { catRu, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
+import { catEn, catRu, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
 import { buildQueue } from '../lib/srs';
 import { STATUS_LABEL, statusOf, type Status } from '../lib/status';
 import { newLeftToday, useProgress } from '../lib/storage';
-import { Button, colors, Row, T } from '../components/ui';
+import { Button, colors, hint, Row, T } from '../components/ui';
 import { ProgressBar } from '../components/ProgressBar';
 
 const STATUS_ORDER: Status[] = ['due', 'learning', 'new', 'learned'];
@@ -69,13 +69,13 @@ export default function DeckScreen() {
       </Text>
       <Row>
         <Button
-          label={queue.length ? `Учить (${queue.length})` : 'На сегодня всё ✓'}
+          label={queue.length ? `Учи́ть (${queue.length})` : 'На сего́дня всё ✓'}
           en={queue.length ? `Review (${queue.length} cards)` : 'Done for now'}
           disabled={!queue.length}
           onPress={() => router.push({ pathname: '/review', params: { deck } })}
         />
         <Button
-          label="↩ Повторить изученное" en="↩ Practice seen"
+          label="↩ Повтори́ть изу́ченное" en="↩ Practice seen"
           variant="outline"
           disabled={!seen}
           onPress={() => router.push({ pathname: '/review', params: { deck, mode: 'practice' } })}
@@ -84,9 +84,9 @@ export default function DeckScreen() {
       {canType && (
         <View style={styles.toggle}>
           {(['type', 'status'] as const).map((g) => (
-            <Pressable key={g} onPress={() => setGroupBy(g)} style={[styles.chip, groupBy === g && styles.chipOn]}>
+            <Pressable key={g} onPress={() => setGroupBy(g)} onLongPress={() => hint(g === 'type' ? (byDecade ? 'By decade' : 'By topic') : 'By progress')} style={[styles.chip, groupBy === g && styles.chipOn]}>
               <Text style={[styles.chipText, groupBy === g && styles.chipTextOn]}>
-                {g === 'type' ? (byDecade ? 'По десятилетиям' : 'По темам') : 'По прогрессу'}
+                {g === 'type' ? (byDecade ? 'По десятиле́тиям' : 'По те́мам') : 'По прогре́ссу'}
               </Text>
             </Pressable>
           ))}
@@ -104,14 +104,14 @@ export default function DeckScreen() {
         contentContainerStyle={styles.wrap}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={header}
-        ListEmptyComponent={<T style={styles.meta} en="No phrases yet. Add some in the Phrase library.">Фраз пока нет. Добавьте их в разделе «Фразы».</T>}
+        ListEmptyComponent={<T style={styles.meta} en="No phrases yet. Add some in the Phrase library.">Фраз пока́ нет. Доба́вьте их в разде́ле «Фра́зы».</T>}
         renderSectionHeader={({ section }) => {
           const sec = section as { title: string; data: Phrase[]; count?: number; collapsible?: boolean };
           if (!sec.collapsible) {
             return (
-              <Text style={styles.section}>
+              <T style={styles.section} en={catEn(sec.title)}>
                 {catRu(sec.title)} <Text style={styles.count}>{sec.data.length}</Text>
-              </Text>
+              </T>
             );
           }
           const isOpen = expanded.has(sec.title);
@@ -125,6 +125,7 @@ export default function DeckScreen() {
                   return next;
                 })
               }
+              onLongPress={() => hint(catEn(sec.title))}
               style={styles.fold}
               accessibilityRole="button"
             >
@@ -166,7 +167,7 @@ function decades(phrases: Phrase[]): [string, Phrase[]][] {
   const map = new Map<string, Phrase[]>();
   for (const x of phrases) {
     const y = /\((\d{4})/.exec(x.note ?? '')?.[1];
-    const key = y ? `${y.slice(0, 3)}0-е` : 'Другое';
+    const key = y ? `${y.slice(0, 3)}0-е` : 'Друго́е';
     map.set(key, [...(map.get(key) ?? []), x]);
   }
   return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));

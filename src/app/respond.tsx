@@ -40,8 +40,8 @@ export default function Respond() {
     return (
       <View style={styles.center}>
         <Text style={styles.doneTitle}>Молоде́ц! 💪</Text>
-        <T style={styles.doneBody} en="That's all the prompts for now.">На сегодня вопросов больше нет.</T>
-        <Button label="Назад" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
+        <T style={styles.doneBody} en="That's all the prompts for now.">На сего́дня вопро́сов бо́льше нет.</T>
+        <Button label="Наза́д" en="Back home" onPress={() => router.back()} style={{ flex: 0, alignSelf: 'stretch' }} />
       </View>
     );
   }
@@ -61,7 +61,7 @@ export default function Respond() {
       <Text style={styles.progress}>{queue.length} left</Text>
 
       <Card style={styles.card}>
-        <T style={styles.label} en="Question">Вопрос</T>
+        <T style={styles.label} en="Question">Вопро́с</T>
         {showText ? (
           <>
             <Text style={styles.ru}>{current.ru}</Text>
@@ -69,38 +69,38 @@ export default function Respond() {
           </>
         ) : (
           <Pressable onPress={() => setShowText(true)}>
-            <T style={styles.hidden} en="Listening mode. Tap to show the Cyrillic.">Только на слух. Нажмите, чтобы показать текст.</T>
+            <T style={styles.hidden} en="Listening mode. Tap to show the Cyrillic.">То́лько на слух. Нажми́те, что́бы показа́ть текст.</T>
           </Pressable>
         )}
         <Row>
           <Button label="🔊 Ещё раз" en="🔊 Repeat" variant="outline" onPress={() => speakRu(current.ru, rate)} />
-          <Button label="🐢 Медленно" en="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
+          <Button label="🐢 Ме́дленно" en="🐢 Slow" variant="outline" onPress={() => speakRu(current.ru, Math.max(0.4, rate * 0.6))} />
         </Row>
         {current.hint ? <Text style={styles.hint}>💡 Grammar: {current.hint}</Text> : null}
       </Card>
 
-      <T style={styles.section} en="Your answer: record it out loud">Ваш ответ: запишите его вслух</T>
+      <T style={styles.section} en="Your answer: record it out loud">Ваш отве́т: запиши́те его́ вслух</T>
       <SpeakControls text={current.answers[0].ru} rate={rate} showListen={false} />
 
       {showAnswers ? (
         <>
-          <T style={styles.section} en="Sample answers">Примеры ответов</T>
+          <T style={styles.section} en="Sample answers">Приме́ры отве́тов</T>
           {current.answers.map((a) => (
             <Card key={a.ru} style={styles.answer}>
               <Text style={styles.answerRu}>{a.ru}</Text>
               <Peek en={a.en} />
-              <Button label="🔊 Слушать" en="🔊 Listen" variant="outline" onPress={() => speakRu(a.ru, rate)} style={{ flex: 0 }} />
+              <Button label="🔊 Слу́шать" en="🔊 Listen" variant="outline" onPress={() => speakRu(a.ru, rate)} style={{ flex: 0 }} />
             </Card>
           ))}
-          <T style={styles.question} en="How did your answer go?">Как получился ответ?</T>
+          <T style={styles.question} en="How did your answer go?">Как получи́лся отве́т?</T>
           <Row>
-            <Button label="Учу" en="Still learning: I want to practice it" color={colors.hard} onPress={() => grade('hard')} />
-            <Button label="Почти" en="Almost: I got it, but not confident yet" color={colors.good} onPress={() => grade('good')} />
-            <Button label="Знаю" en="I know it: it's memorized" color={colors.easy} onPress={() => grade('easy')} />
+            <Button label="Учу́" en="Still learning: I want to practice it" color={colors.hard} onPress={() => grade('hard')} />
+            <Button label="Почти́" en="Almost: I got it, but not confident yet" color={colors.good} onPress={() => grade('good')} />
+            <Button label="Зна́ю" en="I know it: it's memorized" color={colors.easy} onPress={() => grade('easy')} />
           </Row>
         </>
       ) : (
-        <Button label="Показать примеры ответов" en="Show sample answers" onPress={() => setShowAnswers(true)} />
+        <Button label="Показа́ть приме́ры отве́тов" en="Show sample answers" onPress={() => setShowAnswers(true)} />
       )}
     </ScrollView>
   );

@@ -118,8 +118,8 @@ function YouTubeSong({ song, videoId, onChange }: { song: Song; videoId: string;
         onError={(e: string) =>
           setError(
             e === 'embed_not_allowed' || e === '101' || e === '150'
-              ? 'Это видео нельзя смотреть в других приложениях. Попробуйте другую загрузку песни.'
-              : `Ошибка YouTube: ${e}`,
+              ? 'Э́то ви́део нельзя́ смотре́ть в други́х приложе́ниях. Попро́буйте другу́ю загру́зку пе́сни.'
+              : `Оши́бка YouTube: ${e}`,
           )
         }
         initialPlayerParams={{ rel: false, iv_load_policy: 3 }}
@@ -170,12 +170,12 @@ function SingAlong({
                 onChange({ ...song, lines: l.lines, times: l.times, offset: 0 });
               }}
             />
-            <Button label="Отмена" en="Cancel" variant="outline" onPress={() => setFinding(false)} style={{ flex: 0 }} />
+            <Button label="Отме́на" en="Cancel" variant="outline" onPress={() => setFinding(false)} style={{ flex: 0 }} />
           </View>
         ) : (
           <>
             {!timed ? (
-              <T style={styles.tip} en="These lyrics aren't timed, so they won't highlight. Tap “Change lyrics” to look for timed ones.">У этого текста нет разметки времени, поэтому подсветки не будет. Нажмите «Сменить текст», чтобы найти размеченный.</T>
+              <T style={styles.tip} en="These lyrics aren't timed, so they won't highlight. Tap “Change lyrics” to look for timed ones.">У э́того те́кста нет разме́тки вре́мени, поэ́тому подсве́тки не бу́дет. Нажми́те «Смени́ть текст», что́бы найти́ разме́ченный.</T>
             ) : null}
             {song.lines.map((line, i) => (
               <Pressable
@@ -193,7 +193,7 @@ function SingAlong({
               </Pressable>
             ))}
             <Pressable onPress={() => setFinding(true)} hitSlop={8}>
-              <T style={styles.link} en="🔎 Change lyrics">🔎 Сменить текст</T>
+              <T style={styles.link} en="🔎 Change lyrics">🔎 Смени́ть текст</T>
             </Pressable>
           </>
         )}
@@ -205,7 +205,7 @@ function SingAlong({
         </Text>
         <Row>
           <Button label="⏪ 5 с" variant="outline" onPress={() => tr.seek(tr.t - 5)} />
-          <Button label={tr.playing ? '⏸ Пауза' : '▶ Играть'} onPress={tr.toggle} />
+          <Button label={tr.playing ? '⏸ Па́уза' : '▶ Игра́ть'} onPress={tr.toggle} />
           <Button label="5 с ⏩" variant="outline" onPress={() => tr.seek(tr.t + 5)} />
         </Row>
         <View style={styles.speeds}>
@@ -217,16 +217,16 @@ function SingAlong({
         </View>
         {timed ? (
           <View style={styles.offsetRow}>
-            <T style={styles.offsetLabel} en="Lyrics timing">Сдвиг текста</T>
+            <T style={styles.offsetLabel} en="Lyrics timing">Сдвиг те́кста</T>
             <Pressable onPress={() => nudge(-0.5)} style={styles.smallBtn} hitSlop={6}>
-              <T style={styles.smallBtnText} en="Earlier">Раньше</T>
+              <T style={styles.smallBtnText} en="Earlier">Ра́ньше</T>
             </Pressable>
             <Text style={styles.offsetValue}>
               {song.offset > 0 ? '+' : ''}
               {song.offset.toFixed(1)}s
             </Text>
             <Pressable onPress={() => nudge(0.5)} style={styles.smallBtn} hitSlop={6}>
-              <T style={styles.smallBtnText} en="Later">Позже</T>
+              <T style={styles.smallBtnText} en="Later">По́зже</T>
             </Pressable>
           </View>
         ) : null}

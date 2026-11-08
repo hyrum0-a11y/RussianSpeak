@@ -1,3 +1,4 @@
+import { STATUS_EN, STATUS_LABEL, type Status } from '../lib/status';
 // Stress is marked with a combining acute accent (U+0301) after the stressed vowel.
 // It is stripped before text is sent to text-to-speech.
 
@@ -15,12 +16,12 @@ export type Phrase = {
 export type Deck = 'everyday' | 'sayings' | 'movies' | 'poetry' | 'slang' | 'mine';
 
 export const DECKS: { id: Deck; title: string; en: string; blurb: string; icon: string }[] = [
-  { id: 'everyday', icon: '💬', title: 'На каждый день', en: 'Everyday phrases', blurb: 'Полезные фразы для настоящих разговоров.' },
-  { id: 'sayings', icon: '📜', title: 'Пословицы', en: 'Famous sayings', blurb: 'Пословицы и поговорки, которые правда говорят.' },
-  { id: 'movies', icon: '🎬', title: 'Цитаты из фильмов', en: 'Movie lines', blurb: 'Знаменитые фразы из советской классики и новых фильмов.' },
-  { id: 'poetry', icon: '🪶', title: 'Стихи и песни', en: 'Poetry & folk songs', blurb: 'Строки Пушкина, Лермонтова, Есенина и народные песни.' },
-  { id: 'slang', icon: '😎', title: 'Сленг', en: 'Slang', blurb: 'Разговорные слова, которых нет в учебниках.' },
-  { id: 'mine', icon: '⭐', title: 'Мои фразы', en: 'My phrases', blurb: 'Фразы, которые вы добавили сами.' },
+  { id: 'everyday', icon: '💬', title: 'На ка́ждый день', en: 'Everyday phrases', blurb: 'Поле́зные фра́зы для настоя́щих разгово́ров.' },
+  { id: 'sayings', icon: '📜', title: 'Посло́вицы', en: 'Famous sayings', blurb: 'Посло́вицы и погово́рки, кото́рые пра́вда говоря́т.' },
+  { id: 'movies', icon: '🎬', title: 'Цита́ты из фи́льмов', en: 'Movie lines', blurb: 'Знамени́тые фра́зы из сове́тской кла́ссики и но́вых фи́льмов.' },
+  { id: 'poetry', icon: '🪶', title: 'Стихи́ и пе́сни', en: 'Poetry & folk songs', blurb: 'Стро́ки Пу́шкина, Ле́рмонтова, Есе́нина и наро́дные пе́сни.' },
+  { id: 'slang', icon: '😎', title: 'Сленг', en: 'Slang', blurb: 'Разгово́рные сло́ва, кото́рых нет в уче́бниках.' },
+  { id: 'mine', icon: '⭐', title: 'Мои́ фра́зы', en: 'My phrases', blurb: 'Фра́зы, кото́рые вы доба́вили са́ми.' },
 ];
 
 export const CATEGORIES = [
@@ -44,22 +45,33 @@ export type Category = (typeof CATEGORIES)[number];
 
 /** Russian names for categories (the English names stay as the stored keys). */
 export const CAT_RU: Record<string, string> = {
-  Basics: 'Основы',
-  'Small talk': 'Разговор',
-  'Getting by': 'Самое нужное',
-  'Food & drink': 'Еда и напитки',
-  Travel: 'Путешествия',
-  Shopping: 'Покупки',
-  Opinions: 'Мнения',
-  'Plans & time': 'Планы и время',
-  Feelings: 'Чувства',
-  Sayings: 'Пословицы',
-  'Movie lines': 'Фильмы',
-  'Poetry & songs': 'Стихи и песни',
+  Basics: 'Осно́вы',
+  'Small talk': 'Разгово́р',
+  'Getting by': 'Са́мое ну́жное',
+  'Food & drink': 'Еда́ и напи́тки',
+  Travel: 'Путеше́ствия',
+  Shopping: 'Поку́пки',
+  Opinions: 'Мне́ния',
+  'Plans & time': 'Пла́ны и вре́мя',
+  Feelings: 'Чу́вства',
+  Sayings: 'Посло́вицы',
+  'Movie lines': 'Фи́льмы',
+  'Poetry & songs': 'Стихи́ и пе́сни',
   Slang: 'Сленг',
-  'My phrases': 'Мои фразы',
+  'My phrases': 'Мои́ фра́зы',
 };
 export const catRu = (c: string) => CAT_RU[c] ?? c;
+
+/** English for a list heading (category key, decade like «1970-е», or progress status), shown on press-and-hold. */
+export function catEn(title: string): string | undefined {
+  if (title in CAT_RU) return title;
+  const decade = /^(\d{4})-е$/.exec(title);
+  if (decade) return `${decade[1]}s`;
+  const status = (Object.keys(STATUS_LABEL) as Status[]).find((k) => STATUS_LABEL[k] === title);
+  if (status) return STATUS_EN[status];
+  if (title === 'Друго́е') return 'Other';
+  return undefined;
+}
 
 const raw: [string, string, Category, string?][] = [
   // Basics

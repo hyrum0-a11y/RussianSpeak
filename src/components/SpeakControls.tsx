@@ -43,7 +43,7 @@ export function SpeakControls({
   async function startRecording() {
     const perm = await requestRecordingPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Нужен микрофон', 'Разрешите доступ к микрофону, чтобы записать своё произношение.');
+      Alert.alert('Ну́жен микрофо́н', 'Разреши́те до́ступ к микрофо́ну, что́бы записа́ть своё произноше́ние.');
       return;
     }
     stopSpeaking();
@@ -82,23 +82,23 @@ export function SpeakControls({
     <View style={styles.wrap}>
       {showListen && (
         <Row>
-          <Button label="🔊 Слушать" en="Listen" onPress={() => speakRu(text, rate)} />
-          <Button label="🐢 Медленно" en="Slow" variant="outline" onPress={() => speakRu(text, Math.max(0.4, rate * 0.6))} />
+          <Button label="🔊 Слу́шать" en="Listen" onPress={() => speakRu(text, rate)} />
+          <Button label="🐢 Ме́дленно" en="Slow" variant="outline" onPress={() => speakRu(text, Math.max(0.4, rate * 0.6))} />
         </Row>
       )}
       <Row>
         <Button
-          label={recording ? `⏹ Стоп  ${(recState.durationMillis / 1000).toFixed(1)} с` : '🎙 Записать себя'}
+          label={recording ? `⏹ Стоп  ${(recState.durationMillis / 1000).toFixed(1)} с` : '🎙 Записа́ть себя́'}
           en={recording ? 'Stop recording' : 'Record yourself'}
           color={colors.record}
           onPress={recording ? stopRecording : startRecording}
         />
-        <Button label="▶ Мой голос" en="Play my recording" variant="outline" color={colors.record} disabled={!myUri || recording} onPress={playMine} />
+        <Button label="▶ Мой го́лос" en="Play my recording" variant="outline" color={colors.record} disabled={!myUri || recording} onPress={playMine} />
       </Row>
       {myUri && !recording ? (
-        <Button label="🔁 Сравнить" en="Compare: native voice, then mine" variant="outline" onPress={compare} />
+        <Button label="🔁 Сравни́ть" en="Compare: native voice, then mine" variant="outline" onPress={compare} />
       ) : (
-        <T style={styles.tip} en="Say it out loud, record, then compare with the native voice.">Скажите вслух, запишите себя и сравните с носителем.</T>
+        <T style={styles.tip} en="Say it out loud, record, then compare with the native voice.">Скажи́те вслух, запиши́те себя́ и сравни́те с носи́телем.</T>
       )}
     </View>
   );

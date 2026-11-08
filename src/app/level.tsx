@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
-import { allPhrases, catRu, CATEGORIES, type Phrase } from '../data/phrases';
+import { allPhrases, catEn, catRu, CATEGORIES, type Phrase } from '../data/phrases';
 import { gradeOf, LEVEL_NAMES, type Level } from '../lib/srs';
 import { useProgress } from '../lib/storage';
-import { Button, colors, T } from '../components/ui';
+import { Button, colors, hint, T } from '../components/ui';
 
 const INFO: Record<Level, { title: string; color: string; hint: string }> = {
-  hard: { title: LEVEL_NAMES.hard.ru, color: colors.hard, hint: 'Отметьте фразу «Почти» или «Знаю», и она перейдёт в тот список.' },
-  good: { title: LEVEL_NAMES.good.ru, color: colors.good, hint: 'Фразы, которые вы в последний раз отметили «Почти».' },
-  easy: { title: LEVEL_NAMES.easy.ru, color: colors.easy, hint: 'Фразы, которые вы в последний раз отметили «Знаю».' },
+  hard: { title: LEVEL_NAMES.hard.ru, color: colors.hard, hint: 'Отме́тьте фра́зу «Почти́» и́ли «Зна́ю», и она́ перейдёт в тот спи́сок.' },
+  good: { title: LEVEL_NAMES.good.ru, color: colors.good, hint: 'Фра́зы, кото́рые вы в после́дний раз отме́тили «Почти́».' },
+  easy: { title: LEVEL_NAMES.easy.ru, color: colors.easy, hint: 'Фра́зы, кото́рые вы в после́дний раз отме́тили «Зна́ю».' },
 };
 
 /** Every phrase whose last grade is this level, by category, collapsed at first. */
@@ -46,9 +46,9 @@ export default function LevelList() {
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <View style={{ gap: 10, marginBottom: 4 }}>
-            <Text style={styles.intro}>{info.hint} Нажмите на фразу, чтобы открыть карточку.</Text>
+            <Text style={styles.intro}>{info.hint} Нажми́те на фра́зу, что́бы откры́ть ка́рточку.</Text>
             <Button
-              label={`Практика · ${items.length}`}
+              label={`Пра́ктика · ${items.length}`}
               en={`Practice all ${items.length}`}
               color={info.color}
               disabled={!items.length}
@@ -57,9 +57,9 @@ export default function LevelList() {
             />
           </View>
         }
-        ListEmptyComponent={<T style={styles.empty} en="No phrases here yet.">Здесь пока нет фраз.</T>}
+        ListEmptyComponent={<T style={styles.empty} en="No phrases here yet.">Здесь пока́ нет фраз.</T>}
         renderSectionHeader={({ section }) => (
-          <Pressable onPress={() => toggle(section.title)} style={styles.fold} accessibilityRole="button">
+          <Pressable onPress={() => toggle(section.title)} onLongPress={() => hint(catEn(section.title))} style={styles.fold} accessibilityRole="button">
             <Text style={styles.foldText}>
               {expanded.has(section.title) ? '▾' : '▸'} {catRu(section.title)}
             </Text>

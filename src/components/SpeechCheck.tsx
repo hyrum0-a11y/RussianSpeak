@@ -37,7 +37,7 @@ export function SpeechCheck({ text }: { text: string }) {
     setListening(false);
     if (e.error === 'no-speech' || e.error === 'speech-timeout') setError("Didn't catch anything. Try again a bit louder.");
     else if (e.error === 'language-not-supported')
-      setError('Распознавание русской речи не установлено. В приложении Google: Настройки → Голос → Распознавание речи офлайн → добавьте русский.');
+      setError('Распознава́ние ру́сской ре́чи не устано́влено. В приложе́нии Google: Настро́йки → Го́лос → Распознава́ние ре́чи офла́йн → доба́вьте ру́сский.');
     else if (e.error !== 'aborted') setError(`Speech recognition error: ${e.message || e.error}`);
   });
 
@@ -47,7 +47,7 @@ export function SpeechCheck({ text }: { text: string }) {
     setHeard('');
     const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!perm.granted) {
-      setError('Разрешите доступ к микрофону, чтобы проверить произношение.');
+      setError('Разреши́те до́ступ к микрофо́ну, что́бы прове́рить произноше́ние.');
       return;
     }
     stopSpeaking();
@@ -59,7 +59,7 @@ export function SpeechCheck({ text }: { text: string }) {
   return (
     <View style={styles.wrap}>
       <Button
-        label={listening ? '⏹ Слушаю… нажмите, чтобы остановить' : '🗣 Проверить произношение'}
+        label={listening ? '⏹ Слу́шаю… нажми́те, что́бы останови́ть' : '🗣 Прове́рить произноше́ние'}
         en={listening ? 'Listening… tap to stop' : 'Check my pronunciation'}
         color={colors.good}
         variant={listening ? 'solid' : 'outline'}
@@ -71,7 +71,7 @@ export function SpeechCheck({ text }: { text: string }) {
         <View style={styles.result}>
           <WordDiff results={results} />
           <Text style={styles.score}>
-            {pct === 100 ? 'Отли́чно! Понятно каждое слово.' : `Понятно ${pct}% слов.`} Услышано: «{heard}»
+            {pct === 100 ? 'Отли́чно! Поня́тно ка́ждое сло́во.' : `Поня́тно ${pct}% слов.`} Услы́шано: «{heard}»
           </Text>
         </View>
       )}
