@@ -19,9 +19,12 @@ const GRADES: { grade: Grade; label: string; color: string }[] = [
 ];
 
 export default function Review() {
-  const params = useLocalSearchParams<{ deck?: string; mode?: string }>();
+  const params = useLocalSearchParams<{ deck?: string; mode?: string; id?: string }>();
+  // "id" = one card opened from a deck page. It counts as a real review if it's new or due.
+  const single = params.id;
+  const [notDue, setNotDue] = useState(false);
   // "practice" = go back over cards you've already learned, without changing their schedule.
-  const practice = params.mode === 'practice';
+  const practice = params.mode === 'practice' || notDue;
   // "all" = today's review across every deck.
   const deck: Deck | 'all' =
     params.deck === 'all' ? 'all' : DECKS.some((d) => d.id === params.deck) ? (params.deck as Deck) : 'everyday';
@@ -39,7 +42,11 @@ export default function Review() {
     loadProgress().then((prog) => {
       const decks = deck === 'all' ? DECKS.map((d) => d.id) : [deck];
       const now = Date.now();
-      if (practice) {
+      if (single) {
+        const c = prog.cards[single];
+        setNotDue(!!c && c.due > now);
+        setQueue([single]);
+      } else if (practice) {
         const ids = decks.flatMap((d) => phrasesIn(d, prog.custom).map((x) => x.id));
         setQueue(ids.filter((id) => prog.cards[id]).sort(() => Math.random() - 0.5));
       } else {
@@ -51,7 +58,8 @@ export default function Review() {
         );
       }
     });
-  }, [deck, practice]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck, params.mode, single]);
 
   const custom = p?.custom;
   const byId = useMemo(() => new Map(allPhrases(custom).map((x) => [x.id, x])), [custom]);
@@ -127,6 +135,11 @@ export default function Review() {
     setHistory((h) => [...h, { id: current.id, before: p?.cards[current.id], again: g === 'again' && !practice }]);
     setRevealed(false);
     setDoneCount((n) => n + 1);
+    // A card opened from the deck page goes straight back there.
+    if (single) {
+      router.back();
+      return;
+    }
     // "Again" puts the card back at the end of this session.
     setQueue((q) => (q ? [...q.slice(1), ...(g === 'again' && !practice ? [current.id] : [])] : q));
   }
@@ -139,7 +152,7 @@ export default function Review() {
     <ScrollView contentContainerStyle={styles.wrap}>
       {title}
       <Text style={styles.progress}>
-        {queue.length} left{isNew ? ' · NEW' : ''} · {current.cat}
+        {single ? '' : `${queue.length} left`}{isNew ? ' · NEW' : ''} · {current.cat}
         {practice ? ' · practice (schedule unchanged)' : ''}
       </Text>
 
