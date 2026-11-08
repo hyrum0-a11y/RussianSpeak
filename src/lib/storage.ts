@@ -20,7 +20,7 @@ export type Progress = {
   cards: Record<string, CardState>;
   prompts: Record<string, CardState>;
   custom: CustomPhrase[];
-  /** Phrase ids you starred to work on. */
+  /** Unused since the Difficult page replaced the starred list; kept so old saves load. */
   starred: string[];
   newIntroduced: Partial<Record<Deck, DayCount>>;
   streak: { lastDay: string; days: number };
@@ -111,13 +111,6 @@ export async function removeCustomPhrase(ru: string) {
     delete cards[`mine:${ru}`];
     return { ...p, cards, custom: p.custom.filter((x) => x.ru !== ru) };
   });
-}
-
-export async function toggleStar(id: string) {
-  await updateProgress((p) => ({
-    ...p,
-    starred: p.starred.includes(id) ? p.starred.filter((x) => x !== id) : [...p.starred, id],
-  }));
 }
 
 export async function resetProgress(): Promise<void> {

@@ -5,7 +5,7 @@ import { Stack } from 'expo-router/stack';
 import { DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
 import { buildQueue } from '../lib/srs';
 import { STATUS_LABEL, statusOf, type Status } from '../lib/status';
-import { newLeftToday, toggleStar, useProgress } from '../lib/storage';
+import { newLeftToday, useProgress } from '../lib/storage';
 import { Button, colors, Row } from '../components/ui';
 import { ProgressBar } from '../components/ProgressBar';
 
@@ -136,7 +136,6 @@ export default function DeckScreen() {
           <Item
             item={item}
             status={statusOf(cards[item.id], now)}
-            starred={p.starred.includes(item.id)}
             onPress={() => router.push({ pathname: '/review', params: { deck, id: item.id } })}
           />
         )}
@@ -146,7 +145,7 @@ export default function DeckScreen() {
 }
 
 /** Tapping a phrase opens it as a full card (hear, record, speech check, peek, grade). */
-function Item({ item, status, starred, onPress }: { item: Phrase; status: Status; starred: boolean; onPress: () => void }) {
+function Item({ item, status, onPress }: { item: Phrase; status: Status; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.item, pressed && { opacity: 0.7 }]}>
       <View style={[styles.dot, { backgroundColor: STATUS_COLOR[status] }]} />
@@ -154,12 +153,7 @@ function Item({ item, status, starred, onPress }: { item: Phrase; status: Status
         <Text style={styles.ru}>{item.ru}</Text>
         {item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
       </View>
-      <View style={{ alignItems: 'flex-end', gap: 4 }}>
-        <Pressable onPress={() => toggleStar(item.id)} hitSlop={10} accessibilityLabel="Working on">
-          <Text style={[styles.star, starred && { color: '#E0A800' }]}>{starred ? '★' : '☆'}</Text>
-        </Pressable>
-        <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{STATUS_LABEL[status]}</Text>
-      </View>
+      <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{STATUS_LABEL[status]}</Text>
     </Pressable>
   );
 }
@@ -190,7 +184,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   foldText: { fontSize: 17, fontWeight: '700', color: colors.text },
-  star: { fontSize: 20, color: colors.muted },
   wrap: { padding: 16, paddingBottom: 40 },
   header: { gap: 12, marginBottom: 8 },
   icon: { fontSize: 40, textAlign: 'center' },
