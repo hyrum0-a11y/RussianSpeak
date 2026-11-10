@@ -7,7 +7,7 @@ import { practicePool } from '../lib/pool';
 import { speakRu } from '../lib/speech';
 import { loadProgress, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
-import { Button, Card, colors, Row, T, useLang } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 const SESSION = 10;
 
@@ -21,7 +21,6 @@ function makeItems(phrases: Phrase[]): Item[] {
 }
 
 export default function Cloze() {
-  const tr = useLang();
   const [p] = useProgress();
   const [items, setItems] = useState<Item[] | null>(null);
   const [i, setI] = useState(0);
@@ -67,7 +66,7 @@ export default function Cloze() {
   return (
     <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
       <Text style={styles.progress}>
-        {i + 1} / {items.length} · {tr(catRu(current.phrase.cat), current.phrase.cat)}
+        {i + 1} / {items.length} · {catRu(current.phrase.cat)}
       </Text>
       <Card style={styles.card}>
         <Text style={styles.sentence}>

@@ -9,7 +9,7 @@ import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
 import { SpeechCheck } from '../components/SpeechCheck';
 import { AskAI } from '../components/AskAI';
-import { Button, Card, colors, Row, T, useLang } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 
 const GRADES: { grade: Grade; label: string; en: string; color: string }[] = [
@@ -19,7 +19,6 @@ const GRADES: { grade: Grade; label: string; en: string; color: string }[] = [
 ];
 
 export default function Review() {
-  const tr = useLang();
   const params = useLocalSearchParams<{ deck?: string; mode?: string; id?: string; level?: string }>();
   // "level" = practice cards by your last grade (e.g. "hard" or "hard,good").
   const levels = params.level ? (params.level.split(',') as Grade[]) : null;
@@ -170,7 +169,7 @@ export default function Review() {
     <ScrollView contentContainerStyle={styles.wrap}>
       {title}
       <Text style={styles.progress}>
-        {single ? '' : `оста́лось ${queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {tr(catRu(current.cat), current.cat)}
+        {single ? '' : `оста́лось ${queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {catRu(current.cat)}
         {practice ? ' · пра́ктика' : ''}
       </Text>
 

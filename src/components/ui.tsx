@@ -1,5 +1,5 @@
 import { Alert, Platform, Pressable, StyleSheet, Text, ToastAndroid, View, type TextStyle, type ViewStyle } from 'react-native';
-import { useSyncExternalStore, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 export const colors = {
   bg: '#F6F4EF',
@@ -23,52 +23,11 @@ export function hint(en?: string) {
   else Alert.alert(en);
 }
 
-// The EN/РУ switch: shows the English of every button and label on screen (not the phrases you're learning).
-let showEn = false;
-const listeners = new Set<() => void>();
-export function setShowEn(v: boolean) {
-  showEn = v;
-  listeners.forEach((l) => l());
-}
-export function useShowEn() {
-  return useSyncExternalStore(
-    (l) => {
-      listeners.add(l);
-      return () => listeners.delete(l);
-    },
-    () => showEn,
-  );
-}
-/** Pick the Russian or English text, following the EN/РУ switch. */
-export function useLang() {
-  const en = useShowEn();
-  return (ru: string, english?: string) => (en && english ? english : ru);
-}
-
-/** The EN/РУ switch for the top of a screen. */
-export function LangToggle({ light }: { light?: boolean }) {
-  const en = useShowEn();
-  const fg = light ? '#FFFFFF' : colors.primary;
-  return (
-    <Pressable
-      onPress={() => setShowEn(!en)}
-      onLongPress={() => hint(en ? 'Back to Russian' : 'Show everything in English')}
-      hitSlop={10}
-      accessibilityRole="switch"
-      accessibilityState={{ checked: en }}
-      style={[styles.toggle, { borderColor: fg }, en && { backgroundColor: fg }]}
-    >
-      <Text style={[styles.toggleText, { color: en ? (light ? colors.primary : '#FFFFFF') : fg }]}>{en ? 'РУ' : 'EN'}</Text>
-    </Pressable>
-  );
-}
-
-/** Russian text that shows its English when you press and hold it, or when the EN switch is on. */
+/** Russian text that shows its English when you press and hold it. */
 export function T({ en, style, children, numberOfLines }: { en?: string; style?: TextStyle | TextStyle[]; children: ReactNode; numberOfLines?: number }) {
-  const showEnglish = useShowEn() && !!en;
   return (
     <Text style={style} numberOfLines={numberOfLines} onLongPress={en ? () => hint(en) : undefined} suppressHighlighting>
-      {showEnglish ? en : children}
+      {children}
     </Text>
   );
 }
@@ -94,7 +53,6 @@ export function Button({
   style?: ViewStyle;
 }) {
   const solid = variant === 'solid';
-  const text = useLang()(label, en);
   return (
     <Pressable
       onPress={onPress}
@@ -108,7 +66,7 @@ export function Button({
         style,
       ]}
     >
-      <Text style={[styles.btnText, { color: solid ? colors.primaryText : color }]}>{text}</Text>
+      <Text style={[styles.btnText, { color: solid ? colors.primaryText : color }]}>{label}</Text>
       {sub ? <Text style={[styles.btnSub, { color: solid ? colors.primaryText : color }]}>{sub}</Text> : null}
     </Pressable>
   );
@@ -123,8 +81,6 @@ export function Row({ children, style }: { children: ReactNode; style?: ViewStyl
 }
 
 const styles = StyleSheet.create({
-  toggle: { borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 3 },
-  toggleText: { fontWeight: '700', fontSize: 13 },
   btn: {
     flex: 1,
     minHeight: 48,
