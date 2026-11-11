@@ -78,6 +78,12 @@ export function useSongs(): [Song[] | null, () => void] {
 
 // ---- Lyrics search (LRCLIB: a free, community-made library of timed lyrics) ----
 
+// LRCLIB asks apps to name themselves; Android's default User-Agent is just "okhttp".
+const LRCLIB_HEADERS = {
+  'User-Agent': 'RussianSpeak/1.0 (https://github.com/hyrum0-a11y/RussianSpeak)',
+  'Lrclib-Client': 'RussianSpeak (https://github.com/hyrum0-a11y/RussianSpeak)',
+};
+
 export type LyricsMatch = {
   id: number;
   trackName: string;
@@ -91,7 +97,7 @@ export type LyricsMatch = {
 export async function findSong(artist: string, track: string): Promise<LyricsMatch[]> {
   const res = await fetch(
     `https://lrclib.net/api/search?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(track)}`,
-    { headers: { 'Lrclib-Client': 'RussianSpeak (https://github.com/hyrum0-a11y/RussianSpeak)' } },
+    { headers: LRCLIB_HEADERS },
   );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const all = ((await res.json()) as LyricsMatch[]).filter((m) => m.syncedLyrics || m.plainLyrics);
@@ -99,9 +105,7 @@ export async function findSong(artist: string, track: string): Promise<LyricsMat
 }
 
 export async function searchLyrics(q: string, limit = 20): Promise<LyricsMatch[]> {
-  const res = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`, {
-    headers: { 'Lrclib-Client': 'RussianSpeak (https://github.com/hyrum0-a11y/RussianSpeak)' },
-  });
+  const res = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`, { headers: LRCLIB_HEADERS });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const all = ((await res.json()) as LyricsMatch[]).filter((m) => m.syncedLyrics || m.plainLyrics);
   // Timed lyrics first.

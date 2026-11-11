@@ -41,6 +41,16 @@
           "microphonePermission": "RussianSpeak uses the microphone so you can check your pronunciation.",
           "speechRecognitionPermission": "RussianSpeak uses speech recognition to check your pronunciation."
         }
+      ],
+      [
+        "expo-media-library",
+        {
+          "granularPermissions": [
+            "audio"
+          ],
+          "photosPermission": "RussianSpeak doesn't use your photos.",
+          "savePhotosPermission": "RussianSpeak doesn't save photos."
+        }
       ]
     ]
   }
