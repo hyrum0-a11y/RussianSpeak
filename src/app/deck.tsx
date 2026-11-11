@@ -6,7 +6,7 @@ import { catEn, catRu, DECKS, phrasesIn, type Deck, type Phrase } from '../data/
 import { buildQueue } from '../lib/srs';
 import { STATUS_EN, STATUS_LABEL, statusOf, type Status } from '../lib/status';
 import { newLeftToday, useProgress } from '../lib/storage';
-import { Button, colors, hint, Row, T, useLang } from '../components/ui';
+import { Button, colors, hint, Row, T } from '../components/ui';
 import { ProgressBar } from '../components/ProgressBar';
 
 const STATUS_ORDER: Status[] = ['due', 'learning', 'new', 'learned'];
@@ -18,7 +18,6 @@ const STATUS_COLOR: Record<Status, string> = {
 };
 
 export default function DeckScreen() {
-  const tr = useLang();
   const params = useLocalSearchParams<{ deck?: string }>();
   const info = DECKS.find((d) => d.id === params.deck) ?? DECKS[0];
   const deck: Deck = info.id;
@@ -87,7 +86,7 @@ export default function DeckScreen() {
           {(['type', 'status'] as const).map((g) => (
             <Pressable key={g} onPress={() => setGroupBy(g)} onLongPress={() => hint(g === 'type' ? (byDecade ? 'By decade' : 'By topic') : 'By progress')} style={[styles.chip, groupBy === g && styles.chipOn]}>
               <Text style={[styles.chipText, groupBy === g && styles.chipTextOn]}>
-                {g === 'type' ? (byDecade ? tr('По десятиле́тиям', 'By decade') : tr('По те́мам', 'By topic')) : tr('По прогре́ссу', 'By progress')}
+                {g === 'type' ? (byDecade ? 'По десятиле́тиям' : 'По те́мам') : 'По прогре́ссу'}
               </Text>
             </Pressable>
           ))}
@@ -111,7 +110,7 @@ export default function DeckScreen() {
           if (!sec.collapsible) {
             return (
               <Text style={styles.section} onLongPress={() => hint(catEn(sec.title))}>
-                {tr(catRu(sec.title), catEn(sec.title))} <Text style={styles.count}>{sec.data.length}</Text>
+                {catRu(sec.title)} <Text style={styles.count}>{sec.data.length}</Text>
               </Text>
             );
           }
@@ -131,7 +130,7 @@ export default function DeckScreen() {
               accessibilityRole="button"
             >
               <Text style={styles.foldText}>
-                {isOpen ? '▾' : '▸'} {tr(catRu(sec.title), catEn(sec.title))}
+                {isOpen ? '▾' : '▸'} {catRu(sec.title)}
               </Text>
               <Text style={styles.count}>{sec.count}</Text>
             </Pressable>
@@ -158,7 +157,7 @@ function Item({ item, status, onPress }: { item: Phrase; status: Status; onPress
         <Text style={styles.ru}>{item.ru}</Text>
         {item.idiom ? <Text style={styles.en}>{item.en}</Text> : null}
       </View>
-      <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{useLang()(STATUS_LABEL[status], STATUS_EN[status])}</Text>
+      <Text style={[styles.status, { color: STATUS_COLOR[status] }]}>{STATUS_LABEL[status]}</Text>
     </Pressable>
   );
 }

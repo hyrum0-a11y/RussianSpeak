@@ -5,13 +5,12 @@ import { router } from 'expo-router';
 import { gradeWord, loadProgress, useProgress } from '../lib/storage';
 import { speakRu } from '../lib/speech';
 import { Marked } from '../components/Marked';
-import { Button, Card, colors, Row, T, useLang } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 const ORDER = { undefined: 0, hard: 1, good: 2, easy: 3 } as Record<string, number>;
 
 /** One word at a time, shown inside a sentence. Work out the meaning, then check. */
 export default function WordPractice() {
-  const tr = useLang();
   const [p] = useProgress();
   const [queue, setQueue] = useState<string[] | null>(null);
   const [shown, setShown] = useState(false);
@@ -60,7 +59,7 @@ export default function WordPractice() {
         <Marked sentence={sentence} word={w.word} style={styles.sentence} />
         {item.full ? (
           <Pressable onPress={() => setFull(!full)} hitSlop={8}>
-            <Text style={styles.link}>{full ? tr('◂ Ко́ротко', '◂ Short') : tr('Це́лое предложе́ние ▸', 'Whole sentence ▸')}</Text>
+            <Text style={styles.link}>{full ? '◂ Ко́ротко' : 'Це́лое предложе́ние ▸'}</Text>
           </Pressable>
         ) : null}
         <Button label="🔊 Слу́шать" variant="outline" onPress={() => speakRu(sentence)} style={{ flex: 0 }} />

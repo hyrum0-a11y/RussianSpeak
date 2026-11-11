@@ -5,7 +5,7 @@ import { Stack } from 'expo-router/stack';
 import { allPhrases, catEn, catRu, CATEGORIES, type Phrase } from '../data/phrases';
 import { gradeOf, LEVEL_NAMES, type Level } from '../lib/srs';
 import { useProgress } from '../lib/storage';
-import { Button, colors, hint, T, useLang } from '../components/ui';
+import { Button, colors, hint, T } from '../components/ui';
 
 const INFO: Record<Level, { title: string; color: string; hint: string }> = {
   hard: { title: LEVEL_NAMES.hard.ru, color: colors.hard, hint: 'Отме́тьте фра́зу «Почти́» и́ли «Зна́ю», и она́ перейдёт в тот спи́сок.' },
@@ -15,7 +15,6 @@ const INFO: Record<Level, { title: string; color: string; hint: string }> = {
 
 /** Every phrase whose last grade is this level, by category, collapsed at first. */
 export default function LevelList() {
-  const tr = useLang();
   const { grade } = useLocalSearchParams<{ grade?: string }>();
   const level: Level = grade === 'good' || grade === 'easy' ? grade : 'hard';
   const info = INFO[level];
@@ -62,7 +61,7 @@ export default function LevelList() {
         renderSectionHeader={({ section }) => (
           <Pressable onPress={() => toggle(section.title)} onLongPress={() => hint(catEn(section.title))} style={styles.fold} accessibilityRole="button">
             <Text style={styles.foldText}>
-              {expanded.has(section.title) ? '▾' : '▸'} {tr(catRu(section.title), catEn(section.title))}
+              {expanded.has(section.title) ? '▾' : '▸'} {catRu(section.title)}
             </Text>
             <Text style={styles.count}>{section.count}</Text>
           </Pressable>

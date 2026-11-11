@@ -6,7 +6,10 @@ export type Entry =
   | { found: false; suggestions: string[] };
 
 const API = 'https://ru.wiktionary.org/w/api.php';
-const HEADERS = { 'Api-User-Agent': 'RussianSpeak/1.0 (https://github.com/hyrum0-a11y/RussianSpeak)' };
+// Wikimedia refuses requests that carry a generic app User-Agent (Android's default is "okhttp/…"),
+// so the app names itself. Api-User-Agent is the header browsers are allowed to send instead.
+const UA = 'RussianSpeak/1.0 (https://github.com/hyrum0-a11y/RussianSpeak; Android app)';
+const HEADERS = { 'User-Agent': UA, 'Api-User-Agent': UA, Accept: 'application/json' };
 const CACHE = 'russianspeak:dict3:';
 
 /** Page title for a word: lowercase, no stress marks (ё kept). */
@@ -22,7 +25,12 @@ async function getJson(params: Record<string, string>) {
   const qs = new URLSearchParams({ format: 'json', formatversion: '2', origin: '*', ...params }).toString();
   const res = await fetch(`${API}?${qs}`, { headers: HEADERS });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const body = await res.text();
+  try {
+    return JSON.parse(body);
+  } catch {
+    throw new Error(`not JSON: ${body.slice(0, 60)}`);
+  }
 }
 
 async function page(title: string): Promise<{ meanings: string[]; examples: string[]; phrases: string[] } | null> {

@@ -5,10 +5,9 @@ import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { addSong, keepFile, removeSong, searchFromFileName, useSongs, youtubeId, type Lyrics } from '../lib/songs';
 import { LyricsFinder } from '../components/LyricsFinder';
-import { Button, Card, colors, Row, T, useLang } from '../components/ui';
+import { Button, Card, colors, Row, T } from '../components/ui';
 
 export default function Songs() {
-  const tr = useLang();
   const [songs, reload] = useSongs();
   const [adding, setAdding] = useState(false);
 
@@ -48,8 +47,8 @@ export default function Songs() {
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>{s.title}</Text>
             <Text style={styles.meta}>
-              {s.source.kind === 'youtube' ? 'YouTube' : tr('Файл', 'File')} ·{' '}
-              {s.times.some((t) => t != null) ? tr('текст с подсве́ткой', 'lyrics highlight') : tr('то́лько текст', 'lyrics only')}
+              {s.source.kind === 'youtube' ? 'YouTube' : 'Файл'} ·{' '}
+              {s.times.some((t) => t != null) ? 'текст с подсве́ткой' : 'то́лько текст'}
             </Text>
           </View>
         </Pressable>

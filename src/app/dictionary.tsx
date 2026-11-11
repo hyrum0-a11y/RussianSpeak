@@ -5,13 +5,12 @@ import { lookUp, titleFor, wiktionaryUrl, type Entry } from '../lib/dictionary';
 import { speakRu } from '../lib/speech';
 import { saveWord, useProgress } from '../lib/storage';
 import { dictKey, markWord, wordList } from '../lib/wiktionary';
-import { colors, T, useLang } from '../components/ui';
+import { colors, hint, T } from '../components/ui';
 import { AskAI } from '../components/AskAI';
 
 type Row = { word: string; key: string; lookup?: boolean };
 
 export default function Dictionary() {
-  const tr = useLang();
   const [p] = useProgress();
   const [q, setQ] = useState('');
   const [open, setOpen] = useState<string | null>(null);
@@ -45,7 +44,7 @@ export default function Dictionary() {
           clearButtonMode="while-editing"
         />
         <Text style={styles.count}>
-          {q ? `${rows.filter((r) => !r.lookup).length} из ${words.length}` : tr(`${words.length} слов из ва́ших ка́рточек · и́ли найди́те любо́е сло́во`, `${words.length} words from your cards · or look up any word`)}
+          {q ? `${rows.filter((r) => !r.lookup).length} из ${words.length}` : `${words.length} слов из ва́ших ка́рточек · и́ли найди́те любо́е сло́во`}
         </Text>
       </View>
       <FlatList
@@ -88,18 +87,35 @@ function WordRow({ row, open, onPress, onPick }: { row: Row; open: boolean; onPr
 
 function Definition({ word, onPick }: { word: string; onPick: (w: string) => void }) {
   const [entry, setEntry] = useState<Entry | null>(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let live = true;
+    setError(null);
     lookUp(word)
       .then((e) => live && setEntry(e))
-      .catch(() => live && setError(true));
+      .catch((e) => live && setError(String(e?.message ?? e)));
     return () => {
       live = false;
     };
-  }, [word]);
+  }, [word, attempt]);
 
-  if (error) return <T style={styles.muted} en="Can't reach the dictionary. Check your internet.">Нет свя́зи со словарём. Прове́рьте интерне́т.</T>;
+  if (error) {
+    return (
+      <View style={{ gap: 8 }}>
+        <T style={styles.muted} en="Can't reach the dictionary. Check your internet.">Нет свя́зи со словарём. Прове́рьте интерне́т.</T>
+        <Text style={styles.errorDetail}>({error})</Text>
+        <View style={styles.chips}>
+          <Pressable onPress={() => setAttempt((n) => n + 1)} onLongPress={() => hint('Try again')} style={styles.chip}>
+            <Text style={styles.chipText}>↻ Ещё раз</Text>
+          </Pressable>
+          <Pressable onPress={() => Linking.openURL(wiktionaryUrl(titleFor(word)))} onLongPress={() => hint('Open in the browser')} style={styles.chip}>
+            <Text style={styles.chipText}>Откры́ть в бра́узере ↗</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
   if (!entry) return <ActivityIndicator color={colors.primary} style={{ marginVertical: 8 }} />;
 
   if (!entry.found) {
@@ -157,6 +173,7 @@ function SaveWord({ title, meanings, examples, phrases }: { title: string; meani
 }
 
 const styles = StyleSheet.create({
+  errorDetail: { color: colors.muted, fontSize: 12 },
   saved: { color: colors.good, fontWeight: '600', marginTop: 4 },
   saveBtn: { alignSelf: 'flex-start', marginTop: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: colors.primary },
   saveText: { color: colors.primaryText, fontWeight: '700' },
