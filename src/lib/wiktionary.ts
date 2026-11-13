@@ -65,13 +65,14 @@ function dropTemplates(s: string, names: RegExp): string {
 /** Turn one wikitext definition line into plain text. */
 export function cleanDefinition(line: string): string {
   let s = line.replace(/^#+\s*/, '');
-  s = dropTemplates(s, /^(пример|помета|итд|-|выдел|источник|morph|lang|t|ref)/i);
+  s = dropTemplates(s, /^(пример|помета|итд|-|выдел|источник|morph|lang|t|ref|семантика|оттенок|значение|гипонимы|гиперонимы|синонимы|антонимы)/i);
   s = s
     .replace(/<ref[^>]*\/>|<ref[^>]*>[\s\S]*?<\/ref>/g, '')
     .replace(/<[^>]+>/g, '')
     .replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, '$1')
     .replace(/'{2,}/g, '')
     .replace(/\s+([,;.:])/g, '$1')
+    .replace(/([,;:])[,;:]+/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
   return s.replace(/^[;,:\s]+|[;,\s]+$/g, '');

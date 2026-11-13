@@ -10,7 +10,7 @@ const API = 'https://ru.wiktionary.org/w/api.php';
 // so the app names itself. Api-User-Agent is the header browsers are allowed to send instead.
 const UA = 'RussianSpeak/1.0 (https://github.com/hyrum0-a11y/RussianSpeak; Android app)';
 const HEADERS = { 'User-Agent': UA, 'Api-User-Agent': UA, Accept: 'application/json' };
-const CACHE = 'russianspeak:dict3:';
+const CACHE = 'russianspeak:dict4:';
 
 /** Page title for a word: lowercase, no stress marks (ё kept). */
 export function titleFor(word: string): string {

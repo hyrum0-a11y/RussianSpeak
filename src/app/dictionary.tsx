@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
 import { allPhrases } from '../data/phrases';
 import { lookUp, titleFor, wiktionaryUrl, type Entry } from '../lib/dictionary';
 import { speakRu } from '../lib/speech';
@@ -157,13 +158,24 @@ function SaveWord({ title, meanings, examples, phrases }: { title: string; meani
   const [p] = useProgress();
   if (!p) return null;
   const saved = p.words.some((w) => w.word === title);
-  if (saved) return <T style={styles.saved} en="✓ In my words">✓ В мои́х слова́х</T>;
+  if (saved) {
+    return (
+      <Pressable onPress={() => router.push('/words')} onLongPress={() => hint('Saved in My words. Tap to open the list.')} hitSlop={6}>
+        <Text style={styles.saved}>✓ В мои́х слова́х · откры́ть ›</Text>
+      </Pressable>
+    );
+  }
   const fromCards = allPhrases(p.custom)
     .map((x) => x.ru.replace(/ \/ /g, ' '))
     .filter((ru) => markWord(ru, title).some((part) => part.hit));
   return (
     <Pressable
-      onPress={() => saveWord({ word: title, meanings, phrases, examples: [...new Set([...fromCards, ...examples])].slice(0, 15) })}
+      onPress={() =>
+        saveWord({ word: title, meanings, phrases, examples: [...new Set([...fromCards, ...examples])].slice(0, 15) })
+          .then(() => hint(`«${title}» — в «Мои́х слова́х» на гла́вной`))
+          .catch((e) => Alert.alert('Не получи́лось сохрани́ть', String(e)))
+      }
+      onLongPress={() => hint('Add to My words (the 📝 tile on the home screen)')}
       style={styles.saveBtn}
       accessibilityRole="button"
     >
