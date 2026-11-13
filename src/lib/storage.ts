@@ -69,7 +69,9 @@ export async function loadProgress(): Promise<Progress> {
   if (cache) return cache;
   try {
     const json = await AsyncStorage.getItem(KEY);
-    const parsed = json ? (JSON.parse(json) as Partial<Progress>) : {};
+    const raw = json ? (JSON.parse(json) as Partial<Progress>) : {};
+    // Ignore null fields so a damaged save falls back to defaults instead of crashing later.
+    const parsed = Object.fromEntries(Object.entries(raw ?? {}).filter(([, v]) => v != null)) as Partial<Progress>;
     // Older saves stored one { date, count } for everything; treat it as the everyday deck.
     const intro = parsed.newIntroduced as unknown;
     const newIntroduced =
@@ -96,23 +98,24 @@ export async function updateProgress(fn: (p: Progress) => Progress): Promise<Pro
 
 /** How many new cards from this deck can still be introduced today. */
 export function newLeftToday(p: Progress, deck: Deck): number {
-  const d = p.newIntroduced[deck];
+  const d = p.newIntroduced?.[deck];
   const used = d && d.date === today() ? d.count : 0;
   return Math.max(0, p.settings.newPerDay - used);
 }
 
 export function countNewIntroduced(p: Progress, deck: Deck): Progress {
   const t = today();
-  const d = p.newIntroduced[deck];
+  const d = p.newIntroduced?.[deck];
   const count = (d && d.date === t ? d.count : 0) + 1;
-  return { ...p, newIntroduced: { ...p.newIntroduced, [deck]: { date: t, count } } };
+  return { ...p, newIntroduced: { ...(p.newIntroduced ?? {}), [deck]: { date: t, count } } };
 }
 
 /** Mark today as a practice day for the streak counter. */
 export function touchStreak(p: Progress): Progress {
   const t = today();
-  if (p.streak.lastDay === t) return p;
-  const days = p.streak.lastDay === yesterday() ? p.streak.days + 1 : 1;
+  const last = p.streak?.lastDay;
+  if (last === t) return p;
+  const days = last === yesterday() ? (p.streak?.days ?? 0) + 1 : 1;
   return { ...p, streak: { lastDay: t, days } };
 }
 
