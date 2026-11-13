@@ -17,7 +17,7 @@ An Android-first Expo app for practicing spoken Russian: memorizing phrases, pro
 - **Russian interface.** Every button and label is in Russian. Press and hold one to see its English.
 - **Учу / Почти / Знаю lists** (still learning / almost / I know it). The home screen shows how many phrases you last marked with each grade. Tap one to see that list by category (collapsed at first); tap a phrase to open its card, or practice the whole list. There is no "Again" button; older "Again" marks count as Учу.
 - **Ask AI.** On any card or dictionary word, tap 🤖 Спросить ИИ to write a question in Russian (add your own if you like) and send it to any AI app through the share menu, or copy it.
-- **Словарь.** A Russian-only dictionary of every word in your cards, searchable. Tap a word for its meanings from Викисловарь (Russian Wiktionary), or search any word.
+- **Словарь.** A dictionary of every word in your cards, searchable. Tap a word for its Russian meanings from Викисловарь (Russian Wiktionary), with English meanings underneath from the English Wiktionary, or search any word.
 - **Мои слова.** In the Словарь, tap ＋ В мои слова to save a word. The app collects example sentences for it (from Викисловарь and from your cards). Practice shows the word highlighted in a short phrase (like «иди ко мне»), a different one each time, with the full sentence one tap away; work out the meaning, then check and mark Учу / Почти / Знаю.
 - **Phrase library.** Browse by category and tap a phrase to hear it.
 - **Local progress.** Everything is saved on the phone (AsyncStorage). There is no account.

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanDefinition, russianMeanings, stems, wordList } from './wiktionary.ts';
+import { cleanDefinition, englishMeanings, russianMeanings, stems, wordList } from './wiktionary.ts';
 
 const PAGE = `{{wikipedia}}
 = {{-ru-}} =
@@ -79,4 +79,18 @@ test('cleanDefinition drops the семантика block and doubled commas', ()
     cleanDefinition('# {{разг.|ru}} выражает [[согласие]], {{-}}, [[согласен]] {{пример|Хорошо, приду.}}{{семантика|синонимы=ладно|антонимы=}}'),
     'разг. выражает согласие, согласен',
   );
+});
+
+test('englishMeanings reads the Russian section of the en.wiktionary API', () => {
+  const data = {
+    ru: [
+      { partOfSpeech: 'Adverb', language: 'Russian', definitions: [{ definition: '<a rel="mw:WikiLink" href="/wiki/well">well</a>, <a href="/wiki/nicely">nicely</a>' }, { definition: '' }] },
+      { partOfSpeech: 'Particle', definitions: [{ definition: '<a>OK</a>, all right' }] },
+    ],
+    en: [{ partOfSpeech: 'Noun', definitions: [{ definition: 'nope' }] }],
+  };
+  assert.deepEqual(englishMeanings(data), [
+    { pos: 'Adverb', text: 'well, nicely' },
+    { pos: 'Particle', text: 'OK, all right' },
+  ]);
 });
