@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { russianExamples, russianMeanings, russianSetPhrases, stems } from './wiktionary';
+import { englishMeanings, russianExamples, russianMeanings, russianSetPhrases, stems, type EnglishSense } from './wiktionary';
 
 export type Entry =
   | { found: true; title: string; meanings: string[]; examples: string[]; phrases: string[] }
@@ -79,4 +79,22 @@ export async function lookUp(word: string): Promise<Entry> {
   }
   AsyncStorage.setItem(CACHE + title, JSON.stringify(entry)).catch(() => {});
   return entry;
+}
+
+const EN_CACHE = 'russianspeak:dict-en1:';
+
+/**
+ * English meanings from the English Wiktionary (its Russian-language entries).
+ * Returns [] when there's no English entry. Cached on the phone.
+ */
+export async function lookUpEnglish(title: string): Promise<EnglishSense[]> {
+  const key = EN_CACHE + title;
+  const cached = await AsyncStorage.getItem(key).catch(() => null);
+  if (cached) return JSON.parse(cached) as EnglishSense[];
+  const res = await fetch(`https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(title)}`, { headers: HEADERS });
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const senses = englishMeanings(await res.json());
+  AsyncStorage.setItem(key, JSON.stringify(senses)).catch(() => {});
+  return senses;
 }

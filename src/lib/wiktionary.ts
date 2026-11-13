@@ -259,3 +259,34 @@ export function contexts(word: string, examples: string[], phrases: string[] = [
   for (const p of phrases) if (!seen.has(p)) out.push({ short: p });
   return out;
 }
+
+/** One English definition from en.wiktionary's REST API (HTML) as plain text. */
+export function cleanEnglish(html: string): string {
+  return html
+    .replace(/<span class="HQToggle"[\s\S]*?<\/span>/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export type EnglishSense = { pos: string; text: string };
+
+/** English meanings of a Russian word from en.wiktionary's definition API response. */
+export function englishMeanings(data: unknown): EnglishSense[] {
+  const ru = (data as { ru?: { partOfSpeech?: string; definitions?: { definition?: string }[] }[] } | null)?.ru;
+  if (!Array.isArray(ru)) return [];
+  const out: EnglishSense[] = [];
+  for (const entry of ru) {
+    for (const d of entry.definitions ?? []) {
+      const text = cleanEnglish(d.definition ?? '');
+      if (text) out.push({ pos: entry.partOfSpeech ?? '', text });
+    }
+  }
+  return out.slice(0, 12);
+}

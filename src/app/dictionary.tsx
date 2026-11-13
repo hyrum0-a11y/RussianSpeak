@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { allPhrases } from '../data/phrases';
-import { lookUp, titleFor, wiktionaryUrl, type Entry } from '../lib/dictionary';
+import { lookUp, lookUpEnglish, titleFor, wiktionaryUrl, type Entry } from '../lib/dictionary';
+import type { EnglishSense } from '../lib/wiktionary';
 import { speakRu } from '../lib/speech';
 import { saveWord, useProgress } from '../lib/storage';
 import { dictKey, markWord, wordList } from '../lib/wiktionary';
@@ -144,11 +145,43 @@ function Definition({ word, onPick }: { word: string; onPick: (w: string) => voi
           {i + 1}. {m}
         </Text>
       ))}
+      <English title={entry.title} />
       <SaveWord title={entry.title} meanings={entry.meanings} examples={entry.examples} phrases={entry.phrases} />
       <AskAI text={word} />
       <Pressable onPress={() => Linking.openURL(wiktionaryUrl(entry.title))} hitSlop={6}>
         <Text style={styles.source}>Викисло́варь ↗</Text>
       </Pressable>
+    </View>
+  );
+}
+
+/** English meanings under the Russian ones (from the English Wiktionary). */
+function English({ title }: { title: string }) {
+  const [senses, setSenses] = useState<EnglishSense[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    setSenses(null);
+    setFailed(false);
+    lookUpEnglish(title)
+      .then((s) => live && setSenses(s))
+      .catch(() => live && setFailed(true));
+    return () => {
+      live = false;
+    };
+  }, [title]);
+  if (failed) return <Text style={styles.enMuted}>English: couldn't load.</Text>;
+  if (!senses) return <ActivityIndicator color={colors.muted} size="small" style={{ alignSelf: 'flex-start' }} />;
+  if (!senses.length) return <Text style={styles.enMuted}>No English entry.</Text>;
+  return (
+    <View style={styles.enBox}>
+      <Text style={styles.enHead}>🇬🇧 English</Text>
+      {senses.map((s, i) => (
+        <Text key={i} style={styles.enText}>
+          {s.pos ? <Text style={styles.enPos}>{s.pos.toLowerCase()} · </Text> : null}
+          {s.text}
+        </Text>
+      ))}
     </View>
   );
 }
@@ -185,6 +218,11 @@ function SaveWord({ title, meanings, examples, phrases }: { title: string; meani
 }
 
 const styles = StyleSheet.create({
+  enBox: { gap: 4, marginTop: 4, paddingTop: 8, borderTopWidth: 1, borderColor: colors.border },
+  enHead: { color: colors.muted, fontSize: 13, fontWeight: '700' },
+  enText: { color: colors.text, fontSize: 16, lineHeight: 22 },
+  enPos: { color: colors.muted, fontStyle: 'italic' },
+  enMuted: { color: colors.muted, fontSize: 13 },
   errorDetail: { color: colors.muted, fontSize: 12 },
   saved: { color: colors.good, fontWeight: '600', marginTop: 4 },
   saveBtn: { alignSelf: 'flex-start', marginTop: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: colors.primary },

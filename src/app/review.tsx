@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { allPhrases, catRu, DECKS, phrasesIn, type Deck, type Phrase } from '../data/phrases';
@@ -135,30 +135,34 @@ export default function Review() {
 
   async function grade(g: Grade) {
     if (!current) return;
-    if (practice) {
-      // Practice leaves the schedule alone but remembers how well you knew it.
-      await updateProgress((prog) => {
-        const c = prog.cards[current.id];
-        const next = c ? { ...c, last: g } : schedule(newCard(Date.now()), g, Date.now());
-        return { ...prog, cards: { ...prog.cards, [current.id]: next } };
-      });
-    } else {
-      const next = schedule(state, g, Date.now());
-      await updateProgress((prog) => {
-        const counted = isNew ? countNewIntroduced(prog, current.deck) : prog;
-        return touchStreak({ ...counted, cards: { ...counted.cards, [current.id]: next } });
-      });
-    }
-    setHistory((h) => [...h, { id: current.id, before: p?.cards[current.id], again: g === 'again' && !practice }]);
+    const id = current.id;
+    const deckOfCard = current.deck;
+    const before = p?.cards[id];
+    // Move on right away; saving happens after, so a slow or failed save never leaves you stuck on a card.
+    setHistory((h) => [...h, { id, before, again: g === 'again' && !practice }]);
     setRevealed(false);
     setDoneCount((n) => n + 1);
-    // A card opened from the deck page goes straight back there.
-    if (single) {
-      router.back();
-      return;
-    }
+    if (single) router.back();
     // "Again" puts the card back at the end of this session.
-    setQueue((q) => (q ? [...q.slice(1), ...(g === 'again' && !practice ? [current.id] : [])] : q));
+    else setQueue((q) => (q ? [...q.slice(1), ...(g === 'again' && !practice ? [id] : [])] : q));
+    try {
+      if (practice) {
+        // Practice leaves the schedule alone but remembers how well you knew it.
+        await updateProgress((prog) => {
+          const c = prog.cards[id];
+          const next = c ? { ...c, last: g } : schedule(newCard(Date.now()), g, Date.now());
+          return { ...prog, cards: { ...prog.cards, [id]: next } };
+        });
+      } else {
+        const next = schedule(before ?? newCard(Date.now()), g, Date.now());
+        await updateProgress((prog) => {
+          const counted = !before ? countNewIntroduced(prog, deckOfCard) : prog;
+          return touchStreak({ ...counted, cards: { ...counted.cards, [id]: next } });
+        });
+      }
+    } catch (e) {
+      Alert.alert('Не получи́лось сохрани́ть оце́нку', String((e as Error)?.message ?? e));
+    }
   }
 
   const ru = <Text style={styles.ru}>{current.ru}</Text>;
@@ -169,7 +173,7 @@ export default function Review() {
     <ScrollView contentContainerStyle={styles.wrap}>
       {title}
       <Text style={styles.progress}>
-        {single ? '' : `оста́лось ${queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {catRu(current.cat)}
+        {single ? '' : `ка́рточка ${doneCount + 1} из ${doneCount + queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {catRu(current.cat)}
         {practice ? ' · пра́ктика' : ''}
       </Text>
 
