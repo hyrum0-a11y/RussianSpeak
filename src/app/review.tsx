@@ -169,7 +169,7 @@ export default function Review() {
     <ScrollView contentContainerStyle={styles.wrap}>
       {title}
       <Text style={styles.progress}>
-        {single ? '' : `оста́лось ${queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {catRu(current.cat)}
+        {single ? '' : `ка́рточка ${doneCount + 1} из ${doneCount + queue.length}`}{isNew ? ' · НО́ВОЕ' : ''} · {catRu(current.cat)}
         {practice ? ' · пра́ктика' : ''}
       </Text>
 
