@@ -6,7 +6,7 @@ import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-au
 import YoutubePlayer, { type YoutubeIframeRef } from 'react-native-youtube-iframe';
 import { lineAt, loadSongs, saveSong, type Song } from '../lib/songs';
 import { LyricsFinder } from '../components/LyricsFinder';
-import { Button, colors, Row, T } from '../components/ui';
+import { Button, colors, hint, Row, T } from '../components/ui';
 
 /** What the lyrics view needs from either player. */
 type Transport = {
@@ -147,19 +147,39 @@ function SingAlong({
   const timed = song.times.some((x) => x != null);
   const cur = timed ? lineAt(song.times, tr.t - song.offset) : -1;
 
-  // Keep the current line in the upper part of the lyrics area.
-  useEffect(() => {
+  // Follow the song: keep the current line in the upper part of the lyrics area.
+  // Scrolling by hand pauses this until you tap "follow" again.
+  const [follow, setFollow] = useState(true);
+  const toCurrent = () => {
     const y = ys.current[cur];
     if (cur >= 0 && y != null) scroll.current?.scrollTo({ y: Math.max(0, y - 120), animated: true });
-  }, [cur]);
+  };
+  useEffect(() => {
+    if (follow) toCurrent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cur, follow]);
 
   const nudge = (d: number) => onChange({ ...song, offset: Math.round((song.offset + d) * 10) / 10 });
+
+  /** Hold the line you hear right now: the lyrics line up with the recording from there. */
+  const syncTo = (i: number) => {
+    const ti = song.times[i];
+    if (ti == null) return;
+    onChange({ ...song, offset: Math.round((tr.t - ti) * 10) / 10 });
+    setFollow(true);
+    hint('Текст подстро́ен под пе́сню ✓');
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ title: song.title }} />
       {header}
-      <ScrollView ref={scroll} contentContainerStyle={styles.lyricsWrap} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={scroll}
+        contentContainerStyle={styles.lyricsWrap}
+        keyboardShouldPersistTaps="handled"
+        onScrollBeginDrag={() => setFollow(false)}
+      >
         {finding ? (
           <View style={{ gap: 10 }}>
             <LyricsFinder
@@ -186,7 +206,10 @@ function SingAlong({
                 onPress={() => {
                   const ti = song.times[i];
                   if (ti != null) tr.seek(ti + song.offset);
+                  setFollow(true);
                 }}
+                onLongPress={() => syncTo(i)}
+                delayLongPress={350}
                 style={[styles.line, i === cur && styles.lineOn]}
               >
                 <Text style={[styles.lineText, i === cur && styles.lineTextOn, i < cur && styles.linePast]}>{line}</Text>
@@ -198,6 +221,12 @@ function SingAlong({
           </>
         )}
       </ScrollView>
+
+      {timed && !follow && !finding ? (
+        <Pressable onPress={() => setFollow(true)} onLongPress={() => hint('Follow the song')} style={styles.followBtn}>
+          <Text style={styles.followText}>↓ Следи́ть за пе́сней</Text>
+        </Pressable>
+      ) : null}
 
       <View style={styles.controls}>
         <Text style={styles.time}>
@@ -230,6 +259,11 @@ function SingAlong({
             </Pressable>
           </View>
         ) : null}
+        {timed ? (
+          <T style={styles.syncTip} en="Lyrics ahead or behind? Press and hold the line you hear right now.">
+            Текст спеши́т и́ли отстаёт? Уде́рживайте строку́, кото́рая звучи́т сейча́с.
+          </T>
+        ) : null}
       </View>
     </View>
   );
@@ -241,7 +275,7 @@ function fmt(s: number) {
 }
 
 const styles = StyleSheet.create({
-  lyricsWrap: { padding: 16, paddingBottom: 260 },
+  lyricsWrap: { padding: 16, paddingBottom: 300 },
   line: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 10 },
   lineOn: { backgroundColor: '#FFF4D6' },
   lineText: { fontSize: 20, lineHeight: 28, color: colors.text },
@@ -273,4 +307,16 @@ const styles = StyleSheet.create({
   offsetValue: { color: colors.text, fontVariant: ['tabular-nums'], minWidth: 44, textAlign: 'center' },
   smallBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: colors.border },
   smallBtnText: { color: colors.primary, fontSize: 13, fontWeight: '600' },
+  syncTip: { color: colors.muted, fontSize: 12, textAlign: 'center' },
+  followBtn: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 270,
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    elevation: 4,
+  },
+  followText: { color: colors.primaryText, fontWeight: '700' },
 });

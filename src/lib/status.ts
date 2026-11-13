@@ -16,9 +16,10 @@ export const STATUS_EN: Record<Status, string> = {
   new: 'New',
 };
 
-/** "Learned" once it has survived three reviews in a row. */
+/** "Learned" = the last time you saw it, you marked it Знаю. */
 export function statusOf(c: CardState | undefined, now: number): Status {
   if (!c) return 'new';
+  if (c.last === 'easy') return 'learned';
   if (c.due <= now) return 'due';
-  return c.reps >= 3 ? 'learned' : 'learning';
+  return 'learning';
 }

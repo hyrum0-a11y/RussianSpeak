@@ -1,9 +1,26 @@
+import { router } from 'expo-router';
 import { Stack } from 'expo-router/stack';
+import { Pressable, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { colors } from '../components/ui';
+import { colors, hint } from '../components/ui';
 import { setPreferredVoice } from '../lib/speech';
 import { useProgress } from '../lib/storage';
+
+/** Top-right button on every screen: straight back to the home screen, however deep you are. */
+function HomeButton() {
+  return (
+    <Pressable
+      onPress={() => (router.canDismiss() ? router.dismissAll() : router.replace('/'))}
+      onLongPress={() => hint('Home')}
+      hitSlop={12}
+      accessibilityRole="button"
+      accessibilityLabel="Гла́вная"
+    >
+      <Text style={{ fontSize: 22 }}>🏠</Text>
+    </Pressable>
+  );
+}
 
 export default function RootLayout() {
   const [p] = useProgress();
@@ -21,6 +38,7 @@ export default function RootLayout() {
           headerShadowVisible: false,
           headerTintColor: colors.text,
           contentStyle: { backgroundColor: colors.bg },
+          headerRight: () => <HomeButton />,
         }}
       >
         <Stack.Screen name="index" options={{ title: 'Гла́вная', headerShown: false }} />

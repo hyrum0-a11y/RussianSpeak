@@ -73,3 +73,10 @@ test('contexts puts short phrases first and keeps the full sentence', () => {
   const c = contexts('идти', ['Он сказал: иди ко мне скорее, я жду.'], ['идти в ногу']);
   assert.deepEqual(c, [{ short: 'иди ко мне скорее', full: 'Он сказал: иди ко мне скорее, я жду.' }, { short: 'идти в ногу' }]);
 });
+
+test('cleanDefinition drops the семантика block and doubled commas', () => {
+  assert.equal(
+    cleanDefinition('# {{разг.|ru}} выражает [[согласие]], {{-}}, [[согласен]] {{пример|Хорошо, приду.}}{{семантика|синонимы=ладно|антонимы=}}'),
+    'разг. выражает согласие, согласен',
+  );
+});

@@ -99,7 +99,7 @@ export default function Home() {
         <T style={styles.heroTitle} en="Speak Russian">Говори́ по-ру́сски</T>
         <View style={styles.heroProgress}>
           <ProgressBar value={all.length ? learned / all.length : 0} color="#F2C14E" height={8} />
-          <T style={styles.heroMeta} en={`${learned} of ${all.length} phrases learned`}>
+          <T style={styles.heroMeta} en={`${learned} of ${all.length} phrases learned (marked Знаю)`}>
             Вы́учено {learned} из {all.length}
           </T>
         </View>
