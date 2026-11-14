@@ -7,6 +7,7 @@ import { buildQueue, gradeOf, LEVEL_NAMES, newCard, previewInterval, schedule, t
 import { countNewIntroduced, loadProgress, newLeftToday, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
+import { SpeakAlong } from '../components/Follow';
 import { SpeechCheck } from '../components/SpeechCheck';
 import { AskAI } from '../components/AskAI';
 import { Button, Card, colors, Row, T } from '../components/ui';
@@ -197,6 +198,7 @@ export default function Review() {
       {open ? (
         <>
           <SpeakControls text={current.ru} rate={p.settings.speechRate} autoPlay={!ruFirst} />
+          <SpeakAlong text={current.ru} />
           <SpeechCheck text={current.ru} />
           <AskAI text={current.ru} />
           <T style={styles.question} en="How well do you know it?">Как хорошо́ вы э́то зна́ете?</T>

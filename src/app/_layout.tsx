@@ -55,6 +55,8 @@ export default function RootLayout() {
         <Stack.Screen name="words" options={{ title: 'Мои́ сло́ва' }} />
         <Stack.Screen name="wordpractice" options={{ title: 'Сло́ва в конте́ксте' }} />
         <Stack.Screen name="song" options={{ title: 'Пе́сня' }} />
+        <Stack.Screen name="texts" options={{ title: 'Те́ксты' }} />
+        <Stack.Screen name="text" options={{ title: 'Текст' }} />
       </Stack>
     </>
   );
