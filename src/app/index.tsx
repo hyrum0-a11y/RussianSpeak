@@ -180,6 +180,15 @@ export default function Home() {
         <Text style={styles.chev}>›</Text>
       </Pressable>
 
+      <Pressable onPress={() => router.push('/texts')} onLongPress={() => hint('Texts: poems, tales and dialogues, each word lights up as it is read')} style={({ pressed }) => [styles.songs, pressed && styles.pressed]}>
+        <Text style={styles.modeIcon}>📜</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.modeLabel}>{'Те́ксты'}</Text>
+          <Text style={styles.modeSub}>{'Стихи́, ска́зки, диало́ги: чита́ть вме́сте с го́лосом'}</Text>
+        </View>
+        <Text style={styles.chev}>›</Text>
+      </Pressable>
+
       <View style={styles.footer}>
         <FooterLink label="📚 Фра́зы" en="Phrase library" onPress={() => router.push('/phrases')} />
         <FooterLink label="📖 Слова́рь" en="Dictionary" onPress={() => router.push('/dictionary')} />

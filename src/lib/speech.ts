@@ -1,5 +1,6 @@
 import * as Speech from 'expo-speech';
 import { forSpeech, isRussian, pickRussianVoice, type VoiceInfo } from './speechText';
+import { wordAtChar } from './follow';
 
 export { forSpeech };
 
@@ -46,4 +47,28 @@ export async function hasRussianVoice(): Promise<boolean> {
   } catch {
     return true; // can't tell; don't nag
   }
+}
+
+/**
+ * Speak and report which word is being said. Uses the engine's word positions when the
+ * voice provides them; the caller falls back to timing estimates when it doesn't.
+ */
+export function speakFollow(
+  text: string,
+  rate: number,
+  on: { start?: () => void; done?: () => void; word?: (i: number) => void },
+) {
+  Speech.stop();
+  if (!resolving) resolving = resolveVoice();
+  const spoken = forSpeech(text);
+  resolving.then(() => {
+    Speech.speak(spoken, {
+      language: 'ru-RU',
+      voice: resolved,
+      rate,
+      onStart: on.start,
+      onDone: on.done,
+      onBoundary: (ev: { charIndex: number }) => on.word?.(wordAtChar(spoken, ev.charIndex)),
+    });
+  });
 }
