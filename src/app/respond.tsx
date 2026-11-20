@@ -7,7 +7,7 @@ import { buildQueue, newCard, schedule, type Grade } from '../lib/srs';
 import { loadProgress, touchStreak, updateProgress, useProgress } from '../lib/storage';
 import { Peek } from '../components/Peek';
 import { SpeakControls } from '../components/SpeakControls';
-import { Button, Card, colors, Row, T } from '../components/ui';
+import { Button, Card, colors, Row, T, hint } from '../components/ui';
 
 const byId = new Map(PROMPTS.map((p) => [p.id, p]));
 const SESSION_NEW = 5;
@@ -68,8 +68,8 @@ export default function Respond() {
             <Peek en={current.en} />
           </>
         ) : (
-          <Pressable onPress={() => setShowText(true)}>
-            <T style={styles.hidden} en="Listening mode. Tap to show the Cyrillic.">То́лько на слух. Нажми́те, что́бы показа́ть текст.</T>
+          <Pressable onLongPress={() => hint("Listening mode. Tap to show the Cyrillic.")} onPress={() => setShowText(true)}>
+            <Text style={styles.hidden}>То́лько на слух. Нажми́те, что́бы показа́ть текст.</Text>
           </Pressable>
         )}
         <Row>

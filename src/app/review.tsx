@@ -10,7 +10,7 @@ import { SpeakControls } from '../components/SpeakControls';
 import { SpeakAlong } from '../components/Follow';
 import { SpeechCheck } from '../components/SpeechCheck';
 import { AskAI } from '../components/AskAI';
-import { Button, Card, colors, Row, T } from '../components/ui';
+import { Button, Card, colors, Row, T, hint } from '../components/ui';
 
 
 const GRADES: { grade: Grade; label: string; en: string; color: string }[] = [
@@ -219,8 +219,8 @@ export default function Review() {
         <Button label="Показа́ть по-ру́сски" en="Show Russian" onPress={() => setRevealed(true)} />
       )}
       {history.length > 0 && (
-        <Pressable onPress={goBack} hitSlop={8} accessibilityRole="button">
-          <T style={styles.back} en="Previous card">↩ Преды́дущая ка́рточка</T>
+        <Pressable onLongPress={() => hint("Previous card")} onPress={goBack} hitSlop={8} accessibilityRole="button">
+          <Text style={styles.back}>↩ Преды́дущая ка́рточка</Text>
         </Pressable>
       )}
     </ScrollView>

@@ -147,7 +147,7 @@ export default function Reader() {
           </Pressable>
         </View>
         <Chips label="Ско́рость" en="Speed" values={SPEEDS} value={speed} fmt={(v) => `${v}×`} onChange={setSpeed} />
-        <Chips label="Па́уза" en="Pause after each line (longer = time to repeat it yourself)" values={GAPS} value={gap} fmt={(v) => `${v} с`} onChange={setGap} />
+        <Chips label="Па́уза" en="Pause after each line, in seconds (с = секу́нды). Longer gives you time to repeat it yourself." values={GAPS} value={gap} fmt={(v) => `${v} с`} onChange={setGap} />
       </View>
     </View>
   );

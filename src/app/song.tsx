@@ -215,8 +215,8 @@ function SingAlong({
                 <Text style={[styles.lineText, i === cur && styles.lineTextOn, i < cur && styles.linePast]}>{line}</Text>
               </Pressable>
             ))}
-            <Pressable onPress={() => setFinding(true)} hitSlop={8}>
-              <T style={styles.link} en="🔎 Change lyrics">🔎 Смени́ть текст</T>
+            <Pressable onLongPress={() => hint("🔎 Change lyrics")} onPress={() => setFinding(true)} hitSlop={8}>
+              <Text style={styles.link}>🔎 Смени́ть текст</Text>
             </Pressable>
           </>
         )}
@@ -247,15 +247,15 @@ function SingAlong({
         {timed ? (
           <View style={styles.offsetRow}>
             <T style={styles.offsetLabel} en="Lyrics timing">Сдвиг те́кста</T>
-            <Pressable onPress={() => nudge(-0.5)} style={styles.smallBtn} hitSlop={6}>
-              <T style={styles.smallBtnText} en="Earlier">Ра́ньше</T>
+            <Pressable onLongPress={() => hint("Earlier")} onPress={() => nudge(-0.5)} style={styles.smallBtn} hitSlop={6}>
+              <Text style={styles.smallBtnText}>Ра́ньше</Text>
             </Pressable>
             <Text style={styles.offsetValue}>
               {song.offset > 0 ? '+' : ''}
               {song.offset.toFixed(1)}s
             </Text>
-            <Pressable onPress={() => nudge(0.5)} style={styles.smallBtn} hitSlop={6}>
-              <T style={styles.smallBtnText} en="Later">По́зже</T>
+            <Pressable onLongPress={() => hint("Later")} onPress={() => nudge(0.5)} style={styles.smallBtn} hitSlop={6}>
+              <Text style={styles.smallBtnText}>По́зже</Text>
             </Pressable>
           </View>
         ) : null}

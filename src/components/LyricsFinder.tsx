@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { findSong, parseLrc, searchLyrics, type Lyrics, type LyricsMatch } from '../lib/songs';
 import { SONG_CATALOG } from '../data/songCatalog';
-import { Button, colors, Row, T } from './ui';
+import { Button, colors, Row, T, hint } from './ui';
 
 /**
  * Find lyrics online (timed ones highlight as the song plays), or paste them.
@@ -158,8 +158,8 @@ export function LyricsFinder({
           </Text>
         </Pressable>
       ))}
-      <Pressable onPress={() => setPasting(true)} hitSlop={8}>
-        <T style={styles.link} en="Paste lyrics instead">Вста́вить текст самому́</T>
+      <Pressable onLongPress={() => hint("Paste lyrics instead")} onPress={() => setPasting(true)} hitSlop={8}>
+        <Text style={styles.link}>Вста́вить текст самому́</Text>
       </Pressable>
     </View>
   );
