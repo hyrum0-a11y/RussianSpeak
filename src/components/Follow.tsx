@@ -98,7 +98,7 @@ const REPEATS_PER_STEP = 2;
 
 /** "Говори́ть вме́сте": loop the phrase, highlight each word, and speak along at the same pace. */
 export function SpeakAlong({ text }: { text: string }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(0.8);
   const [gap, setGap] = useState(1);
@@ -121,6 +121,7 @@ export function SpeakAlong({ text }: { text: string }) {
   useEffect(() => {
     halt();
     setStep(0);
+    setOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
   useEffect(() => () => clearTimeout(timer.current), []);

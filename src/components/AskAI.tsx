@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { aiPrompt } from '../lib/askAi';
-import { Button, colors, Row, T } from './ui';
+import { Button, colors, Row, T, hint } from './ui';
 
 /**
  * "Спроси́ть ИИ": writes a question about the phrase and hands it to whatever
@@ -15,8 +15,8 @@ export function AskAI({ text }: { text: string }) {
 
   if (!open) {
     return (
-      <Pressable onPress={() => setOpen(true)} hitSlop={8} accessibilityRole="button">
-        <T style={styles.link} en="🤖 Ask AI">🤖 Спроси́ть ИИ</T>
+      <Pressable onLongPress={() => hint("🤖 Ask AI")} onPress={() => setOpen(true)} hitSlop={8} accessibilityRole="button">
+        <Text style={styles.link}>🤖 Спроси́ть ИИ</Text>
       </Pressable>
     );
   }
@@ -24,6 +24,9 @@ export function AskAI({ text }: { text: string }) {
   const message = aiPrompt(text, q);
   return (
     <View style={styles.box}>
+      <T style={styles.close} en="Type a question about this phrase (or leave it empty), then send it to an AI app or copy it.">
+        Напиши́те вопро́с о фра́зе (и́ли оста́вьте пусты́м), пото́м отпра́вьте его́ в ИИ-приложе́ние и́ли скопи́руйте.
+      </T>
       <TextInput
         style={styles.input}
         placeholder="Ваш вопро́с (мо́жно оста́вить пусты́м)"
@@ -35,15 +38,24 @@ export function AskAI({ text }: { text: string }) {
         multiline
       />
       <Row>
-        <Button label="Отпра́вить…" onPress={() => Share.share({ message }).catch(() => {})} />
+        <Button
+          label="Отпра́вить…"
+          en="Send to an AI app (ChatGPT, Gemini, Claude…)"
+          onPress={() =>
+            Share.share({ message }).catch((e) =>
+              Alert.alert('Не получи́лось откры́ть меню́ «Отпра́вить»', `Скопи́руйте вопро́с и вста́вьте его́ в ИИ-приложе́ние.\n\n${String(e)}`),
+            )
+          }
+        />
         <Button
           label={copied ? 'Скопи́ровано ✓' : 'Копи́ровать'}
+          en="Copy, then paste into any AI app"
           variant="outline"
           onPress={() => Clipboard.setStringAsync(message).then(() => setCopied(true))}
         />
       </Row>
-      <Pressable onPress={() => setOpen(false)} hitSlop={8}>
-        <T style={styles.close} en="Close">Закры́ть</T>
+      <Pressable onLongPress={() => hint("Close")} onPress={() => setOpen(false)} hitSlop={8}>
+        <Text style={styles.close}>Закры́ть</Text>
       </Pressable>
     </View>
   );
