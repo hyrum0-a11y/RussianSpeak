@@ -184,7 +184,7 @@ export function SpeakAlong({ text }: { text: string }) {
         <Text style={styles.playText}>{running ? '⏹ Стоп' : '▶ Повторя́ть'}</Text>
       </Pressable>
       <Chips label="Ско́рость" en="Speed" values={SPEEDS} value={speed} fmt={(v) => `${v}×`} onChange={setSpeed} />
-      <Chips label="Па́уза" en="Pause between repeats, in seconds (с = секу́нды)" values={GAPS} value={gap} fmt={(v) => `${v} с`} onChange={setGap} />
+      <Chips label="Па́уза" en="Pause between repeats" values={GAPS} value={gap} fmt={(v) => `${v} с`} onChange={setGap} />
       {steps.length > 1 ? (
         <Pressable
           onPress={() => {
